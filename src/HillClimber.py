@@ -15,3 +15,16 @@ def SteepestAscentHillClimber(genes):
             genes[bestIndex] = 1 - genes[bestIndex]
         else:
             break
+
+
+def Climb(genes, evaluator, method):
+    climber = method(genes)
+    iteration = climber.next()
+    counter = 0
+    while True:
+        counter += 1
+        try:
+            iteration = climber.send(evaluator.evaluate(iteration))
+        except StopIteration:
+            break
+    return counter

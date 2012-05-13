@@ -136,3 +136,6 @@ class LTGA(object):
             subtrees = self.buildTree(distance)
             masks = ordering(subtrees)
             crossover(masks)
+            # If all individuals are identical
+            if len(set(self.individuals)) == 1:
+                break

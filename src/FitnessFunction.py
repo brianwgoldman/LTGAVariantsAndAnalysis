@@ -3,17 +3,23 @@ class FitnessFunction(object):
         pass
 
     def evaluate(self, genes):
-        raise Exception("Fitness function did not override eval")
+        raise Exception("Fitness function did not override evaluate")
+
+    def subProblemSolved(self, genes):
+        raise Exception("Fitness function did not override subProblemSolved")
 
 
 class OneMax(FitnessFunction):
     def evaluate(self, genes):
         return sum(genes)
 
+    def subProblemSolved(self, genes):
+        return [int(sum(genes) == len(genes))]
+
 
 class DeceptiveTrap(FitnessFunction):
     def __init__(self, config):
-        self.trapSize = config["trapSize"]
+        self.trapSize = config["k"]
 
     def scoreTrap(self, genes):
         trap = sum(genes)
@@ -29,6 +35,10 @@ class DeceptiveTrap(FitnessFunction):
             # sum all of the values in that trap together
             fitness += self.scoreTrap(genes[i:i + self.trapSize])
         return self.normalize(genes, fitness)
+
+    def subProblemSolved(self, genes):
+        return [int(sum(genes[i:i + self.trapSize]) == self.trapSize)
+                for i in xrange(0, len(genes), self.trapSize)]
 
 
 class DeceptiveStepTrap(DeceptiveTrap):
