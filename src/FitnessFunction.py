@@ -1,6 +1,14 @@
 class FitnessFunction(object):
+    def __init__(self, config):
+        pass
+
     def evaluate(self, genes):
         raise Exception("Fitness function did not override eval")
+
+
+class OneMax(FitnessFunction):
+    def evaluate(self, genes):
+        return sum(genes)
 
 
 class DeceptiveTrap(FitnessFunction):
