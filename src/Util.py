@@ -1,10 +1,15 @@
 import inspect
 import json
 import random
+import math
 
 
 def classMethods(classType):
     return dict(inspect.getmembers(classType, inspect.ismethod))
+
+
+def moduleClasses(module):
+    return dict(inspect.getmembers(module, inspect.isclass))
 
 
 def loadConfiguration(filename):
@@ -28,3 +33,20 @@ def randomBitString(length):
     generated = bin(random.getrandbits(length))[2:]  # String of bits
     leadingZeros = '0' * (length - len(generated)) + generated
     return map(int, leadingZeros)
+
+
+def median(data, default=0):
+    ordered = sorted(data)
+    size = len(ordered)
+    if size == 0:
+        return default
+    elif size % 2 == 1:
+        return ordered[(size - 1) / 2]
+    else:
+        return (ordered[(size / 2)] + ordered[size / 2 - 1]) / 2.0
+
+
+def meanstd(data):
+    mean = float(sum(data)) / len(data)
+    std = math.sqrt(sum([(value - mean) ** 2 for value in data]) / len(data))
+    return mean, std

@@ -1,7 +1,10 @@
-import Util
 import os
+import random
 import HillClimber
 from Individual import Individual
+from LTGA import LTGA
+import FitnessFunction
+import Util
 
 
 def createInitialPopulation(runNumber, evaluator, config):
@@ -18,8 +21,8 @@ def createInitialPopulation(runNumber, evaluator, config):
     while len(data) < config["popSize"]:
         row = {}
         genes = Util.randomBitString(config['dimensions'])
-        evaluations = HillClimber.Climb(genes, evaluator,
-                                 HillClimber.SteepestAscentHillClimber)
+        evaluations = HillClimber.climb(genes, evaluator,
+                                 HillClimber.steepestAscentHillClimber)
         iterations = evaluations / config['dimensions']
         fitness = evaluator.evaluate(genes)
         subproblems = evaluator.subProblemSolved(genes)
@@ -51,15 +54,15 @@ def createInitialPopulation(runNumber, evaluator, config):
 
 
 def oneRun(runNumber, optimizerClass, evaluator, config):
-    population, results = createInitialPopulation(runNumber, evaluator, config)
-    results["evaluations"] = 0
+    population, result = createInitialPopulation(runNumber, evaluator, config)
+    result["evaluations"] = 0
 
     bestFitness = max(population).fitness
     lookup = {individual: individual.fitness
               for individual in population}
     optimizer = optimizerClass().generate(population, config)
     individual = optimizer.next()  # Get the first individual
-    while (results['evaluations'] < config["maximumEvaluations"] and
+    while (result['evaluations'] < config["maximumEvaluations"] and
            bestFitness < config["maximumFitness"]):
         try:
             # If this individual has been rated before
@@ -69,7 +72,7 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
             fitness = evaluator.evaluate(individual.genes)
             if config['unique']:
                 lookup[individual] = fitness
-            results['evaluations'] += 1
+            result['evaluations'] += 1
         if bestFitness < fitness:
             bestFitness = fitness
         try:
@@ -77,4 +80,32 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
             individual = optimizer.send(fitness)
         except StopIteration:
             break
-    results['success'] = (bestFitness >= config["maximumFitness"])
+    result['success'] = int(bestFitness >= config["maximumFitness"])
+    return result
+
+
+def fullRun(config):
+    try:
+        random.seed(config["seed"])
+    except KeyError:
+        pass
+
+    results = []
+    for runNumber in range(config["runs"]):
+        options = Util.moduleClasses(FitnessFunction)
+        evaluator = options[config["problem"]](config)
+        results.append(oneRun(runNumber, LTGA, evaluator, config))
+    return results
+
+
+def combineResults(results):
+    combined = {}
+    for result in results:
+        for key, value in result.iteritems():
+            try:
+                combined[key].append(value)
+            except KeyError:
+                combined[key] = [value]
+    for key, value in combined.items():
+        combined[key] = Util.meanstd(value)
+    return combined

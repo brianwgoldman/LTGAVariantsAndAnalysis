@@ -1,4 +1,4 @@
-def SteepestAscentHillClimber(genes):
+def steepestAscentHillClimber(genes):
     bestScore = yield genes
     while True:
         bestIndex = -1
@@ -17,7 +17,7 @@ def SteepestAscentHillClimber(genes):
             break
 
 
-def Climb(genes, evaluator, method):
+def climb(genes, evaluator, method):
     climber = method(genes)
     iteration = climber.next()
     counter = 0

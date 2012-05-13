@@ -10,7 +10,7 @@ class TestHillClimber(unittest.TestCase):
     def testSteepestAscentHillClimber(self):
         genes = [0] * self.dimensions
         target = [1] * self.dimensions
-        climber = HillClimber.SteepestAscentHillClimber(genes)
+        climber = HillClimber.steepestAscentHillClimber(genes)
         iteration = climber.next()
         while True:
             try:

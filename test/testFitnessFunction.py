@@ -4,7 +4,7 @@ from src import FitnessFunction
 
 class TestTrapFunctions(unittest.TestCase):
     def setUp(self):
-        self.config = {'trapSize': 5, 'stepSize': 2}
+        self.config = {'k': 5, 'stepSize': 2}
         self.traps = 20
 
     def testDeceptiveTrap(self):
