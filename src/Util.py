@@ -2,6 +2,7 @@ import inspect
 import json
 import random
 import math
+import os
 
 
 def classMethods(classType):
@@ -27,6 +28,17 @@ def loadConfigurations(filenames):
 def saveConfiguration(filename, data):
     with open(filename, 'w') as f:
         json.dump(data, f)
+
+
+def saveList(filename, data):
+    with open(filename, 'w') as f:
+        f.write('[' + os.linesep)
+        for lineNumber, line in enumerate(data):
+            json.dump(line, f)
+            if lineNumber != len(data) - 1:
+                f.write(",")
+            f.write(os.linesep)
+        f.write(']' + os.linesep)
 
 
 def randomBitString(length):

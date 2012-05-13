@@ -42,7 +42,7 @@ def createInitialPopulation(runNumber, evaluator, config):
                'genes': genes, 'subproblems': subproblems}
         data.append(row)
     if newInfo:
-        Util.saveConfiguration(filename, data)
+        Util.saveList(filename, data)
     # Trim extra information
     data = data[:config["popSize"]]
     population = [Individual(row["genes"], row["fitness"]) for row in data]
@@ -58,20 +58,21 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
     result["evaluations"] = 0
 
     bestFitness = max(population).fitness
-    lookup = {individual: individual.fitness
+    lookup = {individual.__hash__(): individual.fitness
               for individual in population}
     optimizer = optimizerClass().generate(population, config)
     individual = optimizer.next()  # Get the first individual
     while (result['evaluations'] < config["maximumEvaluations"] and
            bestFitness < config["maximumFitness"]):
+        key = individual.__hash__()
         try:
             # If this individual has been rated before
-            fitness = lookup[individual]
+            fitness = lookup[key]
         except KeyError:
             # Evaluate the individual
             fitness = evaluator.evaluate(individual.genes)
             if config['unique']:
-                lookup[individual] = fitness
+                lookup[key] = fitness
             result['evaluations'] += 1
         if bestFitness < fitness:
             bestFitness = fitness
@@ -80,7 +81,9 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
             individual = optimizer.send(fitness)
         except StopIteration:
             break
+
     result['success'] = int(bestFitness >= config["maximumFitness"])
+    print result
     return result
 
 
@@ -100,7 +103,8 @@ def fullRun(config):
 
 def combineResults(results):
     combined = {}
-    for result in results:
+    successful = [result for result in results if result['success']]
+    for result in successful:
         for key, value in result.iteritems():
             try:
                 combined[key].append(value)
@@ -108,4 +112,5 @@ def combineResults(results):
                 combined[key] = [value]
     for key, value in combined.items():
         combined[key] = Util.meanstd(value)
+    combined['success'] = len(successful) / float(len(results)), 0
     return combined

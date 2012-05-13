@@ -14,7 +14,12 @@ class Individual(object):
                               zip(self.genes, other.genes)]))
 
     def __cmp__(self, other):
-        return other.fitness - self.fitness
+        if self.fitness > other.fitness:
+            return 1
+        elif self.fitness < other.fitness:
+            return -1
+        else:
+            return 0
 
     def __str__(self):
         return "(%s) = %s" % (",".join(map(str, self.genes)),
@@ -24,4 +29,4 @@ class Individual(object):
         return str(self)
 
     def __hash__(self):
-        return int("".join(map(str, self.genes)), 2)
+        return int("".join(map(str, self.genes)), 2).__hash__()

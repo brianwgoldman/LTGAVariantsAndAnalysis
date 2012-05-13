@@ -13,57 +13,73 @@ class LTGA(object):
         for valueIndex, geneIndex in enumerate(mask):
             individual.genes[geneIndex] = value[valueIndex]
 
-    def entropy(self, mask):
-        occurances = {}
-        for individual in self.individuals:
-            # extract the gene values for the cluster
-            value = self.getMaskValue(individual, mask)
-            try:
-                occurances[value] += 1
-            except KeyError:
-                occurances[value] = 1
-
-        total = float(len(self.individuals))
-        return -sum(x / total * math.log(x / total, 2)
-                    for x in occurances.itervalues())
-
-    def clusterDistance(self, c1, c2):
+    def entropy(self, mask, lookup):
         try:
-            return 2 - ((self.entropy(c1) + self.entropy(c2))
-                        / self.entropy(c1 + c2))
-        except ZeroDivisionError:
-            return 2  # Zero divison only happens in 0/0
+            return lookup[mask]
+        except KeyError:
+            occurances = {}
+            for individual in self.individuals:
+                # extract the gene values for the cluster
+                value = self.getMaskValue(individual, mask)
+                try:
+                    occurances[value] += 1
+                except KeyError:
+                    occurances[value] = 1
+            total = float(len(self.individuals))
+            result = -sum(x / total * math.log(x / total, 2)
+                          for x in occurances.itervalues())
+            lookup[mask] = result
+            return result
 
-    def pairwiseDistance(self, c1, c2):
+    def clusterDistance(self, c1, c2, lookup):
+        try:
+            return lookup[c1, c2]
+        except KeyError:
+            try:
+                result = 2 - ((self.entropy(c1, lookup) +
+                               self.entropy(c2, lookup))
+                              / self.entropy(c1 + c2, lookup))
+            except ZeroDivisionError:
+                result = 2  # Zero divison only happens in 0/0
+            lookup[c1, c2] = result
+            lookup[c2, c1] = result
+            return result
+
+    def pairwiseDistance(self, c1, c2, lookup):
+        try:
+            return lookup[c1, c2]
         # averages the pairwise distance between each cluster
-        return sum(self.clusterDistance((a,), (b,))
-                   for a in c1 for b in c2) / float(len(c1) * len(c2))
+        except KeyError:
+            result = sum(self.clusterDistance((a,), (b,), lookup)
+                         for a in c1 for b in c2) / float(len(c1) * len(c2))
+            lookup[c1, c2] = result
+            lookup[c2, c1] = result
+            return result
 
     def buildTree(self, distance):
-        clusters = [(i,) for i in xrange(len(self.individuals))]
-        subtrees = [(i,) for i in xrange(len(self.individuals))]
+        clusters = [(i,) for i in xrange(len(self.individuals[0].genes))]
+        subtrees = [(i,) for i in xrange(len(self.individuals[0].genes))]
         random.shuffle(clusters)
         random.shuffle(subtrees)
-        lookup = {(c1, c2): distance(c1, c2)
-                  for c1, c2 in combinations(clusters, 2)}
+        lookup = {}
 
         def allLowest():
             minVal = 3  # Max possible distance should be 2
-            result = []
-            for pair in combinations(clusters, 2):
-                if lookup[pair] < minVal:
-                    result = [pair]
-                if lookup[pair] == minVal:
-                    result.append(pair)
+            results = []
+            for c1, c2 in combinations(clusters, 2):
+                result = distance(c1, c2, lookup)
+                if result < minVal:
+                    minVal = result
+                    results = [(c1, c2)]
+                if result == minVal:
+                    results.append((c1, c2))
+            return results
 
         while len(clusters) > 1:
             c1, c2 = random.choice(allLowest())
-            self.clusters.remove(c1)
-            self.clusters.remove(c2)
+            clusters.remove(c1)
+            clusters.remove(c2)
             combined = c1 + c2
-            for other in clusters:
-                lookup[combined, other] = distance(combined, other)
-                lookup[other, combined] = lookup[combined, other]
             clusters.append(combined)
             # Only add it as a subtree if it is not the root
             if len(clusters) != 1:
@@ -71,7 +87,7 @@ class LTGA(object):
         return subtrees
 
     def leastLinkedFirst(self, subtrees):
-        return reversed(subtrees)
+        return list(reversed(subtrees))
 
     def smallestFirst(self, subtrees):
         return sorted(subtrees, key=len)
@@ -132,10 +148,21 @@ class LTGA(object):
         distance = Util.classMethods(self)[config["distance"]]
         ordering = Util.classMethods(self)[config["ordering"]]
         crossover = Util.classMethods(self)[config["crossover"]]
+        currentIndividuals = set(self.individuals)
         while True:
+            previousIndividuals = currentIndividuals
             subtrees = self.buildTree(distance)
             masks = ordering(subtrees)
-            crossover(masks)
+            generator = crossover(masks)
+            individual = generator.next()
+            while True:
+                fitness = yield individual
+                try:
+                    individual = generator.send(fitness)
+                except StopIteration:
+                    break
             # If all individuals are identical
-            if len(set(self.individuals)) == 1:
+            currentIndividuals = set(self.individuals)
+            if (len(currentIndividuals) == 1 or
+                currentIndividuals == previousIndividuals):
                 break
