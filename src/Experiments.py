@@ -8,6 +8,7 @@ import Util
 
 
 def createInitialPopulation(runNumber, evaluator, config):
+    rngState = random.getstate()  # Stores the state of the RNG
     filename = os.pardir + os.sep + config["initialPopFolder"] + os.sep
     filename += "%(problem)s_%(dimensions)i_%(k)i_%(popSize)i_" % config
     filename += "%i.dat" % runNumber
@@ -48,8 +49,9 @@ def createInitialPopulation(runNumber, evaluator, config):
     population = [Individual(row["genes"], row["fitness"]) for row in data]
     # Get the last row's information about the population
     total = data[-1]
-    return  population, {"iterations": total["iterations"],
-                         "LSevaluations": total["evaluations"],
+    random.setstate(rngState)  # Ensures RNG isn't modified by this function
+    return  population, {"LS_iterations": total["iterations"],
+                         "LS_evaluations": total["evaluations"],
                          "minSubProblem": total['minSubProblem']}
 
 
@@ -83,7 +85,8 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
             break
 
     result['success'] = int(bestFitness >= config["maximumFitness"])
-    print result
+    if config['verbose']:
+        print runNumber, result
     return result
 
 
@@ -103,6 +106,7 @@ def fullRun(config):
 
 def combineResults(results):
     combined = {}
+    # Only gather results from successful runs
     successful = [result for result in results if result['success']]
     for result in successful:
         for key, value in result.iteritems():

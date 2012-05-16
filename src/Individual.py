@@ -29,4 +29,4 @@ class Individual(object):
         return str(self)
 
     def __hash__(self):
-        return int("".join(map(str, self.genes)), 2).__hash__()
+        return int("".join(map(str, self.genes)), 2)

@@ -59,6 +59,10 @@ def median(data, default=0):
 
 
 def meanstd(data):
-    mean = float(sum(data)) / len(data)
-    std = math.sqrt(sum([(value - mean) ** 2 for value in data]) / len(data))
-    return mean, std
+    try:
+        mean = float(sum(data)) / len(data)
+        std = math.sqrt(sum([(value - mean) ** 2 for value in data])
+                        / len(data))
+        return mean, std
+    except (ZeroDivisionError, TypeError):
+        return 0, 0

@@ -101,7 +101,7 @@ class LTGA(object):
         # Does the following twice in order to make enough children
         for _ in [0, 1]:
             random.shuffle(self.individuals)
-            for i in xrange(0, len(self.individuals), 2):
+            for i in xrange(0, len(self.individuals) - 1, 2):
                 p1 = self.individuals[i]
                 p2 = self.individuals[i + 1]
                 for mask in masks:
@@ -117,8 +117,6 @@ class LTGA(object):
                 self.individuals[i + 1] = p2
                 # The offspring is the best individual created during the cross
                 offspring.append(max(p1, p2))
-        if len(offspring) != len(self.individuals):
-            print "YEP"
         self.individuals = offspring
 
     def globalCrossover(self, masks):
