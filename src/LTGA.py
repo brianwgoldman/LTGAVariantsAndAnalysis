@@ -40,7 +40,7 @@ class LTGA(object):
                                self.entropy(c2, lookup))
                               / self.entropy(c1 + c2, lookup))
             except ZeroDivisionError:
-                result = 2  # Zero divison only happens in 0/0
+                result = 2  # Zero division only happens in 0/0
             lookup[c1, c2] = result
             lookup[c2, c1] = result
             return result
