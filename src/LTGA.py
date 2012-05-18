@@ -93,7 +93,9 @@ class LTGA(object):
         return sorted(subtrees, key=len)
 
     def applyMask(self, p1, p2, mask):
-        return Individual.Individual([p2.genes[g] if g in mask else p1.genes[g]
+        maskSet = set(mask)
+        return Individual.Individual([p2.genes[g] if g in maskSet
+                                      else p1.genes[g]
                                       for g in range(len(p1.genes))])
 
     def twoParentCrossover(self, masks):

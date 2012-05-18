@@ -10,7 +10,7 @@ import Util
 def createInitialPopulation(runNumber, evaluator, config):
     rngState = random.getstate()  # Stores the state of the RNG
     filename = os.pardir + os.sep + config["initialPopFolder"] + os.sep
-    filename += "%(problem)s_%(dimensions)i_%(k)i_%(popSize)i_" % config
+    filename += "%(problem)s_%(dimensions)i_%(k)i_" % config
     filename += "%i.dat" % runNumber
     try:
         data = Util.loadConfiguration(filename)
