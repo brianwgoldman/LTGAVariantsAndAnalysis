@@ -1,8 +1,13 @@
+import random
+
+
 def steepestAscentHillClimber(genes):
     bestScore = yield genes
     while True:
         bestIndex = -1
-        for index in xrange(len(genes)):
+        indicies = range(len(genes))
+        random.shuffle(indicies)
+        for index in indicies:
             # flip the bit at that index
             genes[index] = 1 - genes[index]
             score = yield genes
