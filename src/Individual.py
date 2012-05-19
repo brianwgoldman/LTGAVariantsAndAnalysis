@@ -1,17 +1,10 @@
 import sys
-import math
 
 
 class Individual(object):
     def __init__(self, genes=[], fitness=1 - sys.maxint):
         self.genes = genes
         self.fitness = fitness
-
-    def distance(self, other):
-        #TODO Consider removing
-        return math.sqrt(sum([(mine - theirs) ** 2
-                              for mine, theirs in
-                              zip(self.genes, other.genes)]))
 
     def __cmp__(self, other):
         if self.fitness > other.fitness:

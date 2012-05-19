@@ -66,7 +66,7 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
     individual = optimizer.next()  # Get the first individual
     while (result['evaluations'] < config["maximumEvaluations"] and
            bestFitness < config["maximumFitness"]):
-        key = individual.__hash__()
+        key = hash(individual)
         try:
             # If this individual has been rated before
             fitness = lookup[key]

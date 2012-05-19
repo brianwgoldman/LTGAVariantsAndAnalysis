@@ -2,7 +2,7 @@ import math
 import random
 from itertools import combinations
 import Util
-import Individual
+from Individual import Individual
 
 
 class LTGA(object):
@@ -94,9 +94,8 @@ class LTGA(object):
 
     def applyMask(self, p1, p2, mask):
         maskSet = set(mask)
-        return Individual.Individual([p2.genes[g] if g in maskSet
-                                      else p1.genes[g]
-                                      for g in range(len(p1.genes))])
+        return Individual([p2.genes[g] if g in maskSet else p1.genes[g]
+                           for g in range(len(p1.genes))])
 
     def twoParentCrossover(self, masks):
         offspring = []
