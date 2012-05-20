@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description=description)
 parser.add_argument('configs', metavar='Configuration Files',
                     type=str, nargs='+',
                     help='One or more json formatted files containing' +
-                        'configuration information')
+                        ' configuration information')
 
 parser.add_argument('-p', dest='popSize', type=int,
                     help='Use specified population size')

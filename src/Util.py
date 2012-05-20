@@ -3,6 +3,7 @@ import json
 import random
 import math
 import os
+import itertools
 
 
 def classMethods(classType):
@@ -13,20 +14,20 @@ def moduleClasses(module):
     return dict(inspect.getmembers(module, inspect.isclass))
 
 
-def loadConfiguration(filename):
-    with open(filename, 'r') as f:
+def loadConfiguration(filename, fileMethod=open):
+    with fileMethod(filename, 'r') as f:
         return json.load(f)
 
 
-def loadConfigurations(filenames):
+def loadConfigurations(filenames, fileMethod=open):
     result = {}
     for filename in filenames:
-        result.update(loadConfiguration(filename))
+        result.update(loadConfiguration(filename, fileMethod))
     return result
 
 
-def saveConfiguration(filename, data):
-    with open(filename, 'w') as f:
+def saveConfiguration(filename, data, fileMethod=open):
+    with fileMethod(filename, 'w') as f:
         json.dump(data, f)
 
 
@@ -66,3 +67,7 @@ def meanstd(data):
         return mean, std
     except (ZeroDivisionError, TypeError):
         return 0, 0
+
+
+def binaryCounter(bits):
+    return itertools.product((0, 1), repeat=bits)

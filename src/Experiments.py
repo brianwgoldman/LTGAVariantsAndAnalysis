@@ -9,7 +9,7 @@ import Util
 
 def createInitialPopulation(runNumber, evaluator, config):
     rngState = random.getstate()  # Stores the state of the RNG
-    filename = os.pardir + os.sep + config["initialPopFolder"] + os.sep
+    filename = config["initialPopFolder"] + os.sep
     filename += "%(problem)s_%(dimensions)i_%(k)i_" % config
     filename += "%i.dat" % runNumber
     try:
@@ -99,15 +99,17 @@ def fullRun(config):
     results = []
     for runNumber in range(config["runs"]):
         options = Util.moduleClasses(FitnessFunction)
-        evaluator = options[config["problem"]](config)
+        evaluator = options[config["problem"]](config, runNumber)
         results.append(oneRun(runNumber, LTGA, evaluator, config))
     return results
 
 
 def combineResults(results):
     combined = {}
-    # Only gather results from successful runs
-    successful = [result for result in results if result['success']]
+    # Only gather results from successful runs and where local search
+    # didn't solve the problem
+    successful = [result for result in results
+                  if result['success'] and result['evaluations'] != 0]
     for result in successful:
         for key, value in result.iteritems():
             try:
@@ -116,5 +118,6 @@ def combineResults(results):
                 combined[key] = [value]
     for key, value in combined.items():
         combined[key] = Util.meanstd(value)
-    combined['success'] = len(successful) / float(len(results)), 0
+    runs = len([1 for result in results if result['evaluations'] != 0])
+    combined['success'] = len(successful) / float(runs), 0
     return combined
