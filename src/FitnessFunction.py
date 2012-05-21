@@ -1,6 +1,5 @@
 import random
 import os
-from operator import itemgetter
 from Util import binaryCounter, loadConfiguration, saveConfiguration
 
 
@@ -71,8 +70,7 @@ class NearestNeighborNK(FitnessFunction):
         self.buildProblem(config, problemNumber)
 
     def buildProblem(self, config, problemNumber):
-        self.epistasis = [itemgetter(*[(g + i) % self.n
-                                       for i in range(self.k + 1)])
+        self.epistasis = [[(g + i) % self.n for i in range(self.k + 1)]
                           for g in range(self.n)]
         key = "%(dimensions)i_%(k)i_" % config
         key += str(problemNumber)
@@ -91,15 +89,16 @@ class NearestNeighborNK(FitnessFunction):
 
     def evaluate(self, genes):
         fitness = 0
-        for g, subProblem in enumerate(self.epistasis):
-            fitness += self.getFitness(g, subProblem(genes))
+        for g, ep in enumerate(self.epistasis):
+            scalarized = int(''.join(map(str, [genes[x] for x in ep])), 2)
+            fitness += self.fitness[g][scalarized]
         return round((fitness - self.min) / (self.max - self.min), 6)
 
     def getFitness(self, g, neighborhood):
         return self.fitness[g][int(''.join(map(str, neighborhood)), 2)]
 
     def subProblemSolved(self, genes):
-        return [int(subProblem(genes) == subProblem(self.optimal))
+        return [int(all(genes[g] == self.optimal[g] for g in subProblem))
                 for subProblem in self.epistasis]
 
     def solve(self, extreme):

@@ -108,6 +108,7 @@ class LTGA(object):
                 for mask in masks:
                     c1 = self.applyMask(p1, p2, mask)
                     c2 = self.applyMask(p2, p1, mask)
+                    # Duplicates are caught higher up
                     c1.fitness = yield c1
                     c2.fitness = yield c2
                     # if the best child is better than the best parent
@@ -147,9 +148,8 @@ class LTGA(object):
         distance = Util.classMethods(self)[config["distance"]]
         ordering = Util.classMethods(self)[config["ordering"]]
         crossover = Util.classMethods(self)[config["crossover"]]
-        currentIndividuals = set(self.individuals)
+        beforeGenerationSet = set(self.individuals)
         while True:
-            previousIndividuals = currentIndividuals
             subtrees = self.buildTree(distance)
             masks = ordering(subtrees)
             generator = crossover(masks)
@@ -161,7 +161,8 @@ class LTGA(object):
                 except StopIteration:
                     break
             # If all individuals are identical
-            currentIndividuals = set(self.individuals)
-            if (len(currentIndividuals) == 1 or
-                currentIndividuals == previousIndividuals):
+            currentSet = set(self.individuals)
+            if (len(currentSet) == 1 or
+                currentSet == beforeGenerationSet):
                 break
+            beforeGenerationSet = currentSet
