@@ -18,8 +18,8 @@ class Individual(object):
         return "(%s) = %s" % (",".join(map(str, self.genes)),
                               str(self.fitness))
 
-    def __repr__(self):
-        return str(self)
+    def __int__(self):
+        return int("".join(map(str, self.genes)), 2)
 
     def __hash__(self):
-        return int("".join(map(str, self.genes)), 2)
+        return int(self)

@@ -60,13 +60,13 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
     result["evaluations"] = 0
 
     bestFitness = max(population).fitness
-    lookup = {individual.__hash__(): individual.fitness
+    lookup = {int(individual): individual.fitness
               for individual in population}
     optimizer = optimizerClass().generate(population, config)
     individual = optimizer.next()  # Get the first individual
     while (result['evaluations'] < config["maximumEvaluations"] and
            bestFitness < config["maximumFitness"]):
-        key = hash(individual)
+        key = int(individual)
         try:
             # If this individual has been rated before
             fitness = lookup[key]
@@ -97,10 +97,13 @@ def fullRun(config):
         pass
 
     results = []
-    for runNumber in range(config["runs"]):
-        options = Util.moduleClasses(FitnessFunction)
-        evaluator = options[config["problem"]](config, runNumber)
-        results.append(oneRun(runNumber, LTGA, evaluator, config))
+    try:
+        for runNumber in range(config["runs"]):
+            options = Util.moduleClasses(FitnessFunction)
+            evaluator = options[config["problem"]](config, runNumber)
+            results.append(oneRun(runNumber, LTGA, evaluator, config))
+    except KeyboardInterrupt:
+        print "Caught interrupt, exiting"
     return results
 
 
@@ -119,5 +122,43 @@ def combineResults(results):
     for key, value in combined.items():
         combined[key] = Util.meanstd(value)
     runs = len([1 for result in results if result['evaluations'] != 0])
-    combined['success'] = len(successful) / float(runs), 0
+    try:
+        combined['success'] = len(successful) / float(runs), 0
+    except ZeroDivisionError:
+        combined['success'] = 0, 0
     return combined
+
+
+def bisection(config):
+    def canSucceed(config):
+        failures = 0
+        for runNumber in xrange(config["bisectionRuns"]):
+            options = Util.moduleClasses(FitnessFunction)
+            evaluator = options[config["problem"]](config, runNumber)
+            result = oneRun(runNumber, LTGA, evaluator, config)
+            if not result['success']:
+                failures += 1
+                if failures > config['bisectionFailureLimit']:
+                    return False
+        return True
+
+    least, most = 0, 1
+    while True:
+        least = most
+        most *= 2
+        config['popSize'] = most
+        if config['verbose']:
+            print 'Trying population size', config['popSize']
+        if canSucceed(config):
+            break
+    while least + 1 < most:
+        config['popSize'] = (most + least) / 2
+        if config['verbose']:
+            print 'Trying population size', config['popSize']
+        if canSucceed(config):
+            most = config['popSize']
+        else:
+            least = config['popSize']
+    config['popSize'] = most
+    if config['verbose']:
+        print 'Bisection set population size as', config['popSize']
