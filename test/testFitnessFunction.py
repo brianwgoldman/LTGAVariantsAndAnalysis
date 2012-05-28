@@ -1,5 +1,5 @@
 import unittest
-from src import FitnessFunction
+import FitnessFunction
 
 
 class TestTrapFunctions(unittest.TestCase):

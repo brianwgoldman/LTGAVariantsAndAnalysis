@@ -1,9 +1,9 @@
 import unittest
 import random
-from src import Util
+import Util
 
 
-class TestHillClimber(unittest.TestCase):
+class TestUtil(unittest.TestCase):
     def setUp(self):
         self.size = 100
         self.loops = 100
