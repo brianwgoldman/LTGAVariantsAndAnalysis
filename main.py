@@ -17,8 +17,10 @@ size of 5.  The LTGA variant ``original+`` is used, and the verbose flag is set
 to increase the output given.  Since no population size is specified, it will
 automatically call bisection to find the minimum population size.
 
-````pypy main.py experiments/general.cfg problems/DeceptiveTrap_50_5.cfg
-variants/originalplus.cfg -v````
+``pypy main.py experiments/general.cfg problems/DeceptiveTrap_50_5.cfg
+variants/originalplus.cfg -v``
+
+For any support questions email brianwgoldman@acm.org or dtauritz@acm.org.
 '''
 import argparse
 import sys
