@@ -1,3 +1,7 @@
+'''
+This module contains the code used to actually run experiments and to parse
+the results of those experiments.
+'''
 import os
 import random
 import HillClimber
@@ -8,6 +12,32 @@ import Util
 
 
 def createInitialPopulation(runNumber, evaluator, config):
+    '''
+    Used to create the initial population for a given run on a specified
+    problem.  Uses a ``HillClimber.steepestAscentHillClimber`` to optimize all
+    individuals.  Will store results to the 'initialPopFolder' specified by
+    ``config`` for future use, and will automatically load past saved
+    information.  Returns the population and a dictionary describing features
+    of that population as well as how it was created.
+
+    Parameters:
+
+    - ``runNumber``: What number run this population is for.  Ensures that
+      populations created for this run in past experiments is reused and that
+      all runs of a single experiment use different initial populations.
+    - ``evaluator``: A ``FitnessFunction`` object used when optimizing the
+      initial population
+    - ``config``: A dictionary containing all configuration information
+      required to generate initial individuals.  Should include values
+      for:
+
+      - ``initialPopFolder``: The relative path for where to save initial
+        population information.
+      - ``problem``: The name of the problem currently being solved.
+      - ``dimensions``: The number of dimensions in the problem.
+      - ``k``: The k value used by the problem.
+      - ``popSize``: The population size to be created.
+    '''
     rngState = random.getstate()  # Stores the state of the RNG
     filename = config["initialPopFolder"] + os.sep
     filename += "%(problem)s_%(dimensions)i_%(k)i_" % config
@@ -26,7 +56,7 @@ def createInitialPopulation(runNumber, evaluator, config):
                                  HillClimber.steepestAscentHillClimber)
         iterations = evaluations / config['dimensions']
         fitness = evaluator.evaluate(genes)
-        subproblems = evaluator.subProblemSolved(genes)
+        subproblems = evaluator.subProblemsSolved(genes)
         try:
             # Keeps a running sum of current population
             total = data[-1]
@@ -56,6 +86,29 @@ def createInitialPopulation(runNumber, evaluator, config):
 
 
 def oneRun(runNumber, optimizerClass, evaluator, config):
+    '''
+    Performs a single run of LTGA in solving a specific problem.  Returns
+    a dictionary of result information
+
+    Parameters:
+
+    - ``runNumber``: What number run this is
+    - ``optimizerClass``: What class of optimizer to use, for instance ``LTGA``
+    - ``evaluator``: The problem being solved, for instance
+      ``FitnessFunction.DeceptiveTrap``, ``FitnessFunction.DeceptiveStepTrap``
+      or ``FitnessFunction.NearestNeighborNK``.
+    - ``config``: A dictionary containing all configuration information
+      required to perform a single run.  Should include values for:
+
+      - ``maximumEvaluations``: The hard limit on how many evaluations to
+        perform.
+      - ``maximumFitness``: The fitness required for a run to be considered a
+        success.
+      - ``unique``: A True / False value to determine if only unique evaluations
+        should be counted
+      - All configuration information required by ``createInitialPopulation``
+        and any required by the ``optimizerClass``.
+    '''
     population, result = createInitialPopulation(runNumber, evaluator, config)
     result["evaluations"] = 0
 
@@ -91,11 +144,23 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
 
 
 def fullRun(config):
-    try:
-        random.seed(config["seed"])
-    except KeyError:
-        pass
+    '''
+    Performs a full run of the specified configuration using ``oneRun``. Will
+    return a list of result dictionaries describing what happened in each run.
+    If a keyboard interrupt occurs, will return partial information.
 
+    Parameters
+
+    - ``config``: A dictionary containing all configuration information
+      required to perform all runs.  Should include values for:
+
+      - ``runs``: The number of runs to perform
+      - ``problem``: The problem being solved, for instance ``DeceptiveTrap``,
+        ``DeceptiveStepTrap`` or ``NearestNeighborNK``.
+      - All configuration information required to initialize the
+        ``FitnessFunction.``
+      - All configuration information required by ``oneRun``.
+    '''
     results = []
     try:
         for runNumber in range(config["runs"]):
@@ -108,6 +173,18 @@ def fullRun(config):
 
 
 def combineResults(results):
+    '''
+    Given a list of result dictionaries, determine the mean and standard
+    deviation for all key values.  Only combines results where the success
+    key is true and the number of required evaluations is greater than zero
+    (ensures the LTGA variant was actually used and successful).  Returns a
+    dictionary containing all keys found in the original result objects, with
+    the ``success`` key now set to the success rate
+
+    Parameters:
+
+    - ``results``: A list of dictionaries that recorded result information.
+    '''
     combined = {}
     # Only gather results from successful runs and where local search
     # didn't solve the problem
@@ -130,6 +207,32 @@ def combineResults(results):
 
 
 def bisection(config):
+    '''
+    Determines the minimum population size for a configuration that acceptably
+    solves the specified problem using bisection.  Starts with a minimum
+    population size of 2, this will double the population size until the
+    success criteria are met.  It will then perform a binary search of the
+    space between the lowest found successful population size and the highest
+    found unsuccessful population size.  Modifies the input configuration
+    dictionary to contain the minimum successful population size found.
+
+    Parameters:
+
+    - ``config``: A dictionary containing all configuration information
+      required to perform bisection.  Should include values for:
+
+      - ``bisectionRuns``: The number of runs to use a given population size in
+        order to determine if it is successful.
+      - ``problem``: The problem being solved, for instance ``DeceptiveTrap``,
+        ``DeceptiveStepTrap`` or ``NearestNeighborNK``.
+      - ``bisectionFailureLimit``: The maximum number of times a population
+        size can fail to find the global optimum of a problem before it is
+        marked as unsuccessful.  IE: A failure limit of 1 means it can fail one
+        of the ``bisectionRuns`` without being marked as unsuccessful.
+      - All configuration information required to initialize the
+        ``FitnessFunction.``
+      - All configuration information required by ``oneRun``.
+    '''
     def canSucceed(config):
         failures = 0
         for runNumber in xrange(config["bisectionRuns"]):
