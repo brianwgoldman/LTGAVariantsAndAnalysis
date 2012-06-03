@@ -75,6 +75,6 @@ if __name__ == '__main__':
         print 'You must include a configuration value for', e.args[0]
 
     if args.output_results != None:
-        Util.saveList([combinedResults] + rawResults)
+        Util.saveList(args.output_results, [combinedResults] + rawResults)
     if args.output_config != None:
         Util.saveConfiguration(args.output_config, config)
