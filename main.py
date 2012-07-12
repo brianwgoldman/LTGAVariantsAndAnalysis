@@ -51,6 +51,9 @@ parser.add_argument('-v', dest='verbose', action='store_true',
 parser.add_argument('-o', dest='output_results', type=str,
                     help='Specify a file to output the results of this run.')
 
+parser.add_argument('-d', dest='dimensions', type=int,
+                    help='Use the specified number of dimensions.')
+
 if __name__ == '__main__':
     args = parser.parse_args()
     config = Util.loadConfigurations(args.configs)
@@ -62,6 +65,9 @@ if __name__ == '__main__':
 
     if args.popSize != None:
         config['popSize'] = args.popSize
+
+    if args.dimensions != None:
+        config['dimensions'] = args.dimensions
 
     if 'popSize' not in config or args.bisection:
         if args.verbose:
