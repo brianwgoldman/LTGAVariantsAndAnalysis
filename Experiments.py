@@ -9,6 +9,7 @@ from Individual import Individual
 from LTGA import LTGA
 import FitnessFunction
 import Util
+import gzip
 
 
 def createInitialPopulation(runNumber, evaluator, config):
@@ -41,9 +42,9 @@ def createInitialPopulation(runNumber, evaluator, config):
     rngState = random.getstate()  # Stores the state of the RNG
     filename = config["initialPopFolder"] + os.sep
     filename += "%(problem)s_%(dimensions)i_%(k)i_" % config
-    filename += "%i.dat" % runNumber
+    filename += "%i.dat.gz" % runNumber
     try:
-        data = Util.loadConfiguration(filename)
+        data = Util.loadConfiguration(filename, gzip.open)
     except IOError:
         data = []
 
@@ -73,7 +74,7 @@ def createInitialPopulation(runNumber, evaluator, config):
                'genes': genes, 'subproblems': subproblems}
         data.append(row)
     if newInfo:
-        Util.saveList(filename, data)
+        Util.saveList(filename, data, gzip.open)
     # Trim extra information
     data = data[:config["popSize"]]
     population = [Individual(row["genes"], row["fitness"]) for row in data]
@@ -104,8 +105,8 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
         perform.
       - ``maximumFitness``: The fitness required for a run to be considered a
         success.
-      - ``unique``: A True / False value to determine if only unique evaluations
-        should be counted
+      - ``unique``: A True / False value to determine if only unique
+        evaluations should be counted
       - All configuration information required by ``createInitialPopulation``
         and any required by the ``optimizerClass``.
     '''
@@ -116,26 +117,26 @@ def oneRun(runNumber, optimizerClass, evaluator, config):
     lookup = {int(individual): individual.fitness
               for individual in population}
     optimizer = optimizerClass().generate(population, config)
-    individual = optimizer.next()  # Get the first individual
-    while (result['evaluations'] < config["maximumEvaluations"] and
-           bestFitness < config["maximumFitness"]):
-        key = int(individual)
-        try:
-            # If this individual has been rated before
-            fitness = lookup[key]
-        except KeyError:
-            # Evaluate the individual
-            fitness = evaluator.evaluate(individual.genes)
-            if config['unique']:
-                lookup[key] = fitness
-            result['evaluations'] += 1
-        if bestFitness < fitness:
-            bestFitness = fitness
-        try:
+    try:
+        individual = optimizer.next()  # Get the first individual
+        while (result['evaluations'] < config["maximumEvaluations"] and
+               bestFitness < config["maximumFitness"]):
+            key = int(individual)
+            try:
+                # If this individual has been rated before
+                fitness = lookup[key]
+            except KeyError:
+                # Evaluate the individual
+                fitness = evaluator.evaluate(individual.genes)
+                if config['unique']:
+                    lookup[key] = fitness
+                result['evaluations'] += 1
+            if bestFitness < fitness:
+                bestFitness = fitness
             # Send the fitness into the optimizer and get the next individual
             individual = optimizer.send(fitness)
-        except StopIteration:
-            break
+    except StopIteration:  # If the optimizer ever stops, just end the run
+        pass
 
     result['success'] = int(bestFitness >= config["maximumFitness"])
     if config['verbose']:

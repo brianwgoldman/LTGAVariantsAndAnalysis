@@ -88,7 +88,7 @@ def saveConfiguration(filename, data, fileMethod=open):
         json.dump(data, f)
 
 
-def saveList(filename, data):
+def saveList(filename, data, fileMethod=open):
     '''
     Write out a list of jsons in a more human readable way than
     ``saveConfiguration``.
@@ -97,8 +97,10 @@ def saveList(filename, data):
 
     - ``filename``: The relative path to the file to be written to.
     - ``data``: A list of json-able data to be written
+    - ``fileMethod``: Handler to use to open the file.  Defaults to regular
+      open.
     '''
-    with open(filename, 'w') as f:
+    with fileMethod(filename, 'w') as f:
         f.write('[' + os.linesep)
         for lineNumber, line in enumerate(data):
             json.dump(line, f)
