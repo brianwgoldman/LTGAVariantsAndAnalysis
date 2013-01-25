@@ -1,0 +1,422 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ltga.LTGA &mdash; Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ltga.LTGA</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">This module contains the implementation of LTGA itself.  It includes</span>
+<span class="sd">functionality for each of the variants</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
+<span class="kn">import</span> <span class="nn">Util</span>
+<span class="kn">from</span> <span class="nn">Individual</span> <span class="kn">import</span> <span class="n">Individual</span>
+
+
+<div class="viewcode-block" id="LTGA"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA">[docs]</a><span class="k">class</span> <span class="nc">LTGA</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Class containing all of the LTGA functionality.  Uses the coroutine</span>
+<span class="sd">    design structure to interact with problems being optimized.  To use,</span>
+<span class="sd">    create an LTGA object and then call the ``generate`` function.  This</span>
+<span class="sd">    will send out individuals and expects their fitness to be sent back in.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="LTGA.getMaskValue"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.getMaskValue">[docs]</a>    <span class="k">def</span> <span class="nf">getMaskValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">individual</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Gets the individual&#39;s gene values for the given mask</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``individual``: The individual to get gene information from</span>
+<span class="sd">        - ``mask``: The list of indices to get information from</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">individual</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">mask</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LTGA.setMaskValues"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.setMaskValues">[docs]</a>    <span class="k">def</span> <span class="nf">setMaskValues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">individual</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Sets the individual&#39;s gene values for the given mask</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``individual``: The individual who&#39;s genes are changing.</span>
+<span class="sd">        - ``mask``: The list of indices to change.</span>
+<span class="sd">        - ``value``: The list of values to change to.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">valueIndex</span><span class="p">,</span> <span class="n">geneIndex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+            <span class="n">individual</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">geneIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="n">valueIndex</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="LTGA.entropy"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">lookup</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculates the current populations entropy for a given mask.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``mask``: The list of indices to examine</span>
+<span class="sd">        - ``lookup``: A dictionary containing entropy values already found for</span>
+<span class="sd">          this population.  Should be reset if the population changes.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lookup</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">occurances</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">:</span>
+                <span class="c"># extract the gene values for the cluster</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMaskValue</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">occurances</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">occurances</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">))</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="o">-</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">total</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">occurances</span><span class="o">.</span><span class="n">itervalues</span><span class="p">())</span>
+            <span class="n">lookup</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="LTGA.clusterDistance"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.clusterDistance">[docs]</a>    <span class="k">def</span> <span class="nf">clusterDistance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">lookup</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculates the true entropic distance between two clusters of genes.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``c1``: The first cluster.</span>
+<span class="sd">        - ``c2``: The second cluster.</span>
+<span class="sd">        - ``lookup``: A dictionary mapping cluster pairs to their previously</span>
+<span class="sd">          found distances.  Should be reset if the population changes.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lookup</span><span class="p">[</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">entropy</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">lookup</span><span class="p">)</span> <span class="o">+</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">entropy</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">lookup</span><span class="p">))</span>
+                              <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">entropy</span><span class="p">(</span><span class="n">c1</span> <span class="o">+</span> <span class="n">c2</span><span class="p">,</span> <span class="n">lookup</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># Zero division only happens in 0/0</span>
+            <span class="n">lookup</span><span class="p">[</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="n">lookup</span><span class="p">[</span><span class="n">c2</span><span class="p">,</span> <span class="n">c1</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="LTGA.pairwiseDistance"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.pairwiseDistance">[docs]</a>    <span class="k">def</span> <span class="nf">pairwiseDistance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">lookup</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculates the pairwise approximation of the entropic distance between</span>
+<span class="sd">        two clusters of genes.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``c1``: The first cluster.</span>
+<span class="sd">        - ``c2``: The second cluster.</span>
+<span class="sd">        - ``lookup``: A dictionary mapping cluster pairs to their previously</span>
+<span class="sd">          found distances.  Should be reset if the population changes.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lookup</span><span class="p">[</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c"># averages the pairwise distance between each cluster</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusterDistance</span><span class="p">((</span><span class="n">a</span><span class="p">,),</span> <span class="p">(</span><span class="n">b</span><span class="p">,),</span> <span class="n">lookup</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">c1</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">c2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">c2</span><span class="p">))</span>
+            <span class="n">lookup</span><span class="p">[</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="n">lookup</span><span class="p">[</span><span class="n">c2</span><span class="p">,</span> <span class="n">c1</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="LTGA.buildTree"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.buildTree">[docs]</a>    <span class="k">def</span> <span class="nf">buildTree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given a method of calculating distance, build the linkage tree for the</span>
+<span class="sd">        current population.  The tree is built by finding the two clusters with</span>
+<span class="sd">        the minimum distance and merging them into a single cluster.  The</span>
+<span class="sd">        process is initialized with all possible clusters of size 1 and ends</span>
+<span class="sd">        when only a single cluster remains.  Returns the subtrees in the order</span>
+<span class="sd">        they were created.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``distance``: The method of calculating distance.  Current options</span>
+<span class="sd">          are ``self.clusterDistance`` and ``self.pairwiseDistance``</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">clusters</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">genes</span><span class="p">))]</span>
+        <span class="n">subtrees</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">genes</span><span class="p">))]</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">subtrees</span><span class="p">)</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span> <span class="nf">allLowest</span><span class="p">():</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Internal function used to find the list of all clusters pairings</span>
+<span class="sd">            with the current smallest distances.</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">minVal</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c"># Max possible distance should be 2</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">clusters</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">lookup</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="o">&lt;</span> <span class="n">minVal</span><span class="p">:</span>
+                    <span class="n">minVal</span> <span class="o">=</span> <span class="n">result</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="p">[(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">minVal</span><span class="p">:</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">results</span>
+
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">allLowest</span><span class="p">())</span>
+            <span class="n">clusters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+            <span class="n">clusters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">c2</span><span class="p">)</span>
+            <span class="n">combined</span> <span class="o">=</span> <span class="n">c1</span> <span class="o">+</span> <span class="n">c2</span>
+            <span class="n">clusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
+            <span class="c"># Only add it as a subtree if it is not the root</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">subtrees</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">subtrees</span>
+</div>
+<div class="viewcode-block" id="LTGA.leastLinkedFirst"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.leastLinkedFirst">[docs]</a>    <span class="k">def</span> <span class="nf">leastLinkedFirst</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtrees</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Reorders the subtrees such that the cluster pairs with the least</span>
+<span class="sd">        linkage appear first in the list.  Assumes incoming subtrees are</span>
+<span class="sd">        ordered by when they were created by the ``self.buildTree`` function.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``subtrees``: The list of subtrees ordered by how they were</span>
+<span class="sd">          originally created.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">subtrees</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="LTGA.smallestFirst"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.smallestFirst">[docs]</a>    <span class="k">def</span> <span class="nf">smallestFirst</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtrees</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Reorders the subtrees such that the cluster pairs with the smallest</span>
+<span class="sd">        number of genes appear first in the list.  Assumes incoming subtrees</span>
+<span class="sd">        are ordered by when they were created by the ``self.buildTree``</span>
+<span class="sd">        function.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``subtrees``: The list of subtrees ordered by how they were</span>
+<span class="sd">          originally created.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">subtrees</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LTGA.applyMask"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.applyMask">[docs]</a>    <span class="k">def</span> <span class="nf">applyMask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Used by two parent crossover to create an individual by coping the</span>
+<span class="sd">        genetic information from p2 into a clone of p1 for all genes in the</span>
+<span class="sd">        given mask.  Returns the newly created individual.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``p1``: The first parent.</span>
+<span class="sd">        - ``p2``: The second parent.</span>
+<span class="sd">        - ``mask``: The list of indices used in this crossover.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">maskSet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Individual</span><span class="p">([</span><span class="n">p2</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">if</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">maskSet</span> <span class="k">else</span> <span class="n">p1</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">g</span><span class="p">]</span>
+                           <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">genes</span><span class="p">))])</span>
+</div>
+<div class="viewcode-block" id="LTGA.twoParentCrossover"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.twoParentCrossover">[docs]</a>    <span class="k">def</span> <span class="nf">twoParentCrossover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">masks</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Creates individual generator using the two parent crossover variant.</span>
+<span class="sd">        Uses coroutines to send out individuals and receive their fitness</span>
+<span class="sd">        values.  Terminates when a complete evolutionary generation has</span>
+<span class="sd">        finished.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``masks``: The list of crossover masks to be used when generating</span>
+<span class="sd">          individuals, ordered based on how they should be applied.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">offspring</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># Does the following twice in order to make enough children</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">)</span>
+            <span class="c"># pairs off parents with their neighbor</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">:</span>
+                    <span class="n">c1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">applyMask</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+                    <span class="n">c2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">applyMask</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+                    <span class="c"># Duplicates are caught higher up</span>
+                    <span class="n">c1</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">c1</span>
+                    <span class="n">c2</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">c2</span>
+                    <span class="c"># if the best child is better than the best parent</span>
+                    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">):</span>
+                        <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="o">=</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span>
+                <span class="c"># Overwrite the parents with the modified version</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">p1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p2</span>
+                <span class="c"># The offspring is the best individual created during the cross</span>
+                <span class="n">offspring</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span> <span class="o">=</span> <span class="n">offspring</span>
+</div>
+<div class="viewcode-block" id="LTGA.globalCrossover"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.globalCrossover">[docs]</a>    <span class="k">def</span> <span class="nf">globalCrossover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">masks</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Creates individual generator using the global crossover variant.</span>
+<span class="sd">        Uses coroutines to send out individuals and receive their fitness</span>
+<span class="sd">        values.  Terminates when a complete evolutionary generation has</span>
+<span class="sd">        finished.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``masks``: The list of crossover masks to be used when generating</span>
+<span class="sd">          individuals, ordered based on how they should be applied.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c"># Creates a dictionary to track individual&#39;s values for each mask</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="n">mask</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMaskValue</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="c"># each individual creates a single offspring, which replaces itself</span>
+        <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">:</span>
+                <span class="n">startingValue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMaskValue</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+                <span class="c"># Find the list of values in the population that differ from</span>
+                <span class="c"># the current individual&#39;s values for this mask</span>
+                <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+                           <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">startingValue</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setMaskValues</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                    <span class="n">newFitness</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">individual</span>
+                    <span class="c"># if the individual improved, update fitness</span>
+                    <span class="k">if</span> <span class="n">individual</span><span class="o">.</span><span class="n">fitness</span> <span class="o">&lt;</span> <span class="n">newFitness</span><span class="p">:</span>
+                        <span class="n">individual</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="n">newFitness</span>
+                    <span class="c"># The individual did not improve, revert changes</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">setMaskValues</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">startingValue</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LTGA.generate"><a class="viewcode-back" href="../../ltga.html#ltga.LTGA.LTGA.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initialPopulation</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The individual generator for the LTGA population.  Sends out</span>
+<span class="sd">        individuals that need to be evaluated and receives fitness information.</span>
+<span class="sd">        Will continue sending out individuals until the population contains</span>
+<span class="sd">        only one unique individual or a generation passes without the set of</span>
+<span class="sd">        unique individuals changing.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``initialPopulation``: The list of individuals to be used as the</span>
+<span class="sd">          basis for LTGA&#39;s evolution.  These individuals should already have</span>
+<span class="sd">          fitness values set.  If local search is to be performed on the</span>
+<span class="sd">          initial population, it should be done before sending to this</span>
+<span class="sd">          function.</span>
+<span class="sd">        - ``config``: A dictionary containing all configuration information</span>
+<span class="sd">          required by LTGA to generate individuals.  Should include values</span>
+<span class="sd">          for:</span>
+
+<span class="sd">          - ``distance``: The method used to determine the distance between</span>
+<span class="sd">            clusters, for instance ``clusterDistance`` and</span>
+<span class="sd">            ``pairwiseDistance``.</span>
+<span class="sd">          - ``ordering``: The method used to determine what order subtrees</span>
+<span class="sd">            should be used as crossover masks, for instance</span>
+<span class="sd">            ``leastLinkedFirst`` and ``smallestFirst``.</span>
+<span class="sd">          - ``crossover``: The method used to generate new individuals, for</span>
+<span class="sd">            instance ``twoParentCrossover`` and ``globalCrossover``.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">individuals</span> <span class="o">=</span> <span class="n">initialPopulation</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">classMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;distance&quot;</span><span class="p">]]</span>
+        <span class="n">ordering</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">classMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;ordering&quot;</span><span class="p">]]</span>
+        <span class="n">crossover</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">classMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;crossover&quot;</span><span class="p">]]</span>
+        <span class="n">beforeGenerationSet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">subtrees</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+            <span class="n">masks</span> <span class="o">=</span> <span class="n">ordering</span><span class="p">(</span><span class="n">subtrees</span><span class="p">)</span>
+            <span class="n">generator</span> <span class="o">=</span> <span class="n">crossover</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span>
+            <span class="n">individual</span> <span class="o">=</span> <span class="n">generator</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="n">fitness</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">individual</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">individual</span> <span class="o">=</span> <span class="n">generator</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="c"># If all individuals are identical</span>
+            <span class="n">currentSet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individuals</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">currentSet</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span>
+                <span class="n">currentSet</span> <span class="o">==</span> <span class="n">beforeGenerationSet</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">beforeGenerationSet</span> <span class="o">=</span> <span class="n">currentSet</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Brian W. Goldman and Daniel R. Tauritz.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

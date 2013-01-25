@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ltga.Util &mdash; Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ltga.Util</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Module containing a host of useful functions that do not fall into more</span>
+<span class="sd">explicit categories.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+
+<div class="viewcode-block" id="classMethods"><a class="viewcode-back" href="../../ltga.html#ltga.Util.classMethods">[docs]</a><span class="k">def</span> <span class="nf">classMethods</span><span class="p">(</span><span class="n">classType</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given a class type, return a dictionary mapping string names of that</span>
+<span class="sd">    class&#39;s methods to the actual method.  For instance</span>
+<span class="sd">    ``classMethod(LTGA)[&#39;twoParentCrossover&#39;]`` will return the</span>
+<span class="sd">    ``twoParentCrossover`` function.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``classType``: Specifies what class to retrieve methods for.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">classType</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">ismethod</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="moduleClasses"><a class="viewcode-back" href="../../ltga.html#ltga.Util.moduleClasses">[docs]</a><span class="k">def</span> <span class="nf">moduleClasses</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given a module, return a dictionary mapping string names of that</span>
+<span class="sd">    module&#39;s classes to the actual classes.  For instance</span>
+<span class="sd">    ``moduleClasses(FitnessFunction)[&#39;DeceptiveTrap&#39;]`` will return the</span>
+<span class="sd">    ``DeceptiveTrap`` class.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``module``: Specifies what module to retrieve classes for.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="loadConfiguration"><a class="viewcode-back" href="../../ltga.html#ltga.Util.loadConfiguration">[docs]</a><span class="k">def</span> <span class="nf">loadConfiguration</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">fileMethod</span><span class="o">=</span><span class="nb">open</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Loads a json from the given file name.  Optional file method allows for</span>
+<span class="sd">    compressed files.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``filename``: The relative path to the file to be loaded.</span>
+<span class="sd">    - ``fileMethod``: Handler to use to open the file.  Defaults to regular</span>
+<span class="sd">      open.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">with</span> <span class="n">fileMethod</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="loadConfigurations"><a class="viewcode-back" href="../../ltga.html#ltga.Util.loadConfigurations">[docs]</a><span class="k">def</span> <span class="nf">loadConfigurations</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">fileMethod</span><span class="o">=</span><span class="nb">open</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given a list of file names, create a single dictionary containing all of</span>
+<span class="sd">    their contents.  Repeated keywords will override previously encountered</span>
+<span class="sd">    values.  Optional file method allows for</span>
+<span class="sd">    compressed files.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``filenames``: A list of relative paths to the files to be loaded.</span>
+<span class="sd">    - ``fileMethod``: Handler to use to open the file.  Defaults to regular</span>
+<span class="sd">      open.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">loadConfiguration</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">fileMethod</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+</div>
+<div class="viewcode-block" id="saveConfiguration"><a class="viewcode-back" href="../../ltga.html#ltga.Util.saveConfiguration">[docs]</a><span class="k">def</span> <span class="nf">saveConfiguration</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">fileMethod</span><span class="o">=</span><span class="nb">open</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Writes a block of json-able data to the specifed file path.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``filename``: The relative path to the file to be written to.</span>
+<span class="sd">    - ``data``: Data that can be converted to a json.  IE dictionaries and</span>
+<span class="sd">      lists.</span>
+<span class="sd">    - ``fileMethod``: Handler to use to open the file.  Defaults to regular</span>
+<span class="sd">      open.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">with</span> <span class="n">fileMethod</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="saveList"><a class="viewcode-back" href="../../ltga.html#ltga.Util.saveList">[docs]</a><span class="k">def</span> <span class="nf">saveList</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">fileMethod</span><span class="o">=</span><span class="nb">open</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Write out a list of jsons in a more human readable way than</span>
+<span class="sd">    ``saveConfiguration``.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``filename``: The relative path to the file to be written to.</span>
+<span class="sd">    - ``data``: A list of json-able data to be written</span>
+<span class="sd">    - ``fileMethod``: Handler to use to open the file.  Defaults to regular</span>
+<span class="sd">      open.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">with</span> <span class="n">fileMethod</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;[&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">lineNumber</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lineNumber</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;]&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="randomBitString"><a class="viewcode-back" href="../../ltga.html#ltga.Util.randomBitString">[docs]</a><span class="k">def</span> <span class="nf">randomBitString</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Generate and return a random list of 0s and 1s.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``length``: The length of the list to be generated.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">generated</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">getrandbits</span><span class="p">(</span><span class="n">length</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]</span>  <span class="c"># String of bits</span>
+    <span class="n">leadingZeros</span> <span class="o">=</span> <span class="s">&#39;0&#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">length</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">generated</span><span class="p">))</span> <span class="o">+</span> <span class="n">generated</span>
+    <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">leadingZeros</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="median"><a class="viewcode-back" href="../../ltga.html#ltga.Util.median">[docs]</a><span class="k">def</span> <span class="nf">median</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given a data set, return the median value.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``data``: The data to find the median of.</span>
+<span class="sd">    - ``default``: If ``data`` contains no information, what value should be</span>
+<span class="sd">      returned.  Defaults to 0.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">ordered</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span>
+    <span class="k">elif</span> <span class="n">size</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ordered</span><span class="p">[(</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ordered</span><span class="p">[(</span><span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span> <span class="o">+</span> <span class="n">ordered</span><span class="p">[</span><span class="n">size</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+</div>
+<div class="viewcode-block" id="meanstd"><a class="viewcode-back" href="../../ltga.html#ltga.Util.meanstd">[docs]</a><span class="k">def</span> <span class="nf">meanstd</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns the mean and standard deviation of the given data.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``data``: The data to find the mean and standard deviation of.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">([(</span><span class="n">value</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+                        <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+
+</div>
+<div class="viewcode-block" id="binaryCounter"><a class="viewcode-back" href="../../ltga.html#ltga.Util.binaryCounter">[docs]</a><span class="k">def</span> <span class="nf">binaryCounter</span><span class="p">(</span><span class="n">bits</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates a generator that will count through all possible values for a set</span>
+<span class="sd">    number of bits.  Returned in counting order.  For instance,</span>
+<span class="sd">    ``binaryCounter(3)`` will yield, 000, 001, 010, 011 ... 110, 111.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``bits`` The number of bits in the binary counter.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">repeat</span><span class="o">=</span><span class="n">bits</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Brian W. Goldman and Daniel R. Tauritz.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

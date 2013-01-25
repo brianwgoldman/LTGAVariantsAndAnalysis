@@ -1,0 +1,160 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ltga.HillClimber &mdash; Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ltga.HillClimber</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">This module contains coroutines designed to perform different types of hill</span>
+<span class="sd">climbing as well as a function to perform a complete climb of a single set</span>
+<span class="sd">of genes.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+
+<div class="viewcode-block" id="steepestAscentHillClimber"><a class="viewcode-back" href="../../ltga.html#ltga.HillClimber.steepestAscentHillClimber">[docs]</a><span class="k">def</span> <span class="nf">steepestAscentHillClimber</span><span class="p">(</span><span class="n">genes</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given a initial list of binary genes, create a generator designed to yield</span>
+<span class="sd">    each step in a steepest ascent hill climb.  Modifies the genes in place,</span>
+<span class="sd">    such that when iteration ends the ``genes`` list contains the best found</span>
+<span class="sd">    individual.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``genes``: The initial list of binary genes to improve using hill</span>
+<span class="sd">      climbing.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">bestScore</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">genes</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">bestIndex</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">indicies</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">))</span>
+        <span class="c"># Breaks ties randomly</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">indicies</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indicies</span><span class="p">:</span>
+            <span class="c"># flip the bit at that index</span>
+            <span class="n">genes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">genes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">genes</span>
+            <span class="k">if</span> <span class="n">bestScore</span> <span class="o">&lt;</span> <span class="n">score</span><span class="p">:</span>
+                <span class="n">bestScore</span> <span class="o">=</span> <span class="n">score</span>
+                <span class="n">bestIndex</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="c"># flip the bit at that index back to its original value</span>
+            <span class="n">genes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">genes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bestIndex</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">genes</span><span class="p">[</span><span class="n">bestIndex</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">genes</span><span class="p">[</span><span class="n">bestIndex</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+
+</div>
+<div class="viewcode-block" id="climb"><a class="viewcode-back" href="../../ltga.html#ltga.HillClimber.climb">[docs]</a><span class="k">def</span> <span class="nf">climb</span><span class="p">(</span><span class="n">genes</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Improves the fitness of a list of binary genes using the given method on</span>
+<span class="sd">    the specified evaluation function.  Modifies the genes in place and returns</span>
+<span class="sd">    how many hill climbing evaluations were required to optimize the genes.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``genes``: The initial list of binary genes to improve using hill</span>
+<span class="sd">      climbing.</span>
+<span class="sd">    - ``evaluator``: A function that takes in a list of genes and returns its</span>
+<span class="sd">      fitness.</span>
+<span class="sd">    - ``method``: The hill climbing coroutine to be used.  For instance</span>
+<span class="sd">      ``steepestAscentHillClimbing``.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">climber</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+    <span class="n">iteration</span> <span class="o">=</span> <span class="n">climber</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">iteration</span> <span class="o">=</span> <span class="n">climber</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">iteration</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">counter</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Brian W. Goldman and Daniel R. Tauritz.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,838 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ltga Package &mdash; Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation" href="index.html" />
+    <link rel="prev" title="Linkage Tree Genetic Algorithms: Variants and Analysis" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Linkage Tree Genetic Algorithms: Variants and Analysis"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ltga-package">
+<h1>ltga Package<a class="headerlink" href="#ltga-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-ltga.Experiments">
+<span id="experiments-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">Experiments</span></tt> Module<a class="headerlink" href="#module-ltga.Experiments" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the code used to actually run experiments and to parse
+the results of those experiments.</p>
+<dl class="function">
+<dt id="ltga.Experiments.bisection">
+<tt class="descclassname">ltga.Experiments.</tt><tt class="descname">bisection</tt><big>(</big><em>config</em><big>)</big><a class="reference internal" href="_modules/ltga/Experiments.html#bisection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Experiments.bisection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the minimum population size for a configuration that acceptably
+solves the specified problem using bisection.  Starts with a minimum
+population size of 2, this will double the population size until the
+success criteria are met.  It will then perform a binary search of the
+space between the lowest found successful population size and the highest
+found unsuccessful population size.  Modifies the input configuration
+dictionary to contain the minimum successful population size found.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">config</span></tt>: A dictionary containing all configuration information
+required to perform bisection.  Should include values for:<ul>
+<li><tt class="docutils literal"><span class="pre">bisectionRuns</span></tt>: The number of runs to use a given population size in
+order to determine if it is successful.</li>
+<li><tt class="docutils literal"><span class="pre">problem</span></tt>: The problem being solved, for instance <tt class="docutils literal"><span class="pre">DeceptiveTrap</span></tt>,
+<tt class="docutils literal"><span class="pre">DeceptiveStepTrap</span></tt> or <tt class="docutils literal"><span class="pre">NearestNeighborNK</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">bisectionFailureLimit</span></tt>: The maximum number of times a population
+size can fail to find the global optimum of a problem before it is
+marked as unsuccessful.  IE: A failure limit of 1 means it can fail one
+of the <tt class="docutils literal"><span class="pre">bisectionRuns</span></tt> without being marked as unsuccessful.</li>
+<li>All configuration information required to initialize the
+<tt class="docutils literal"><span class="pre">FitnessFunction.</span></tt></li>
+<li>All configuration information required by <tt class="docutils literal"><span class="pre">oneRun</span></tt>.</li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Experiments.combineResults">
+<tt class="descclassname">ltga.Experiments.</tt><tt class="descname">combineResults</tt><big>(</big><em>results</em><big>)</big><a class="reference internal" href="_modules/ltga/Experiments.html#combineResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Experiments.combineResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of result dictionaries, determine the mean and standard
+deviation for all key values.  Only combines results where the success
+key is true and the number of required evaluations is greater than zero
+(ensures the LTGA variant was actually used and successful).  Returns a
+dictionary containing all keys found in the original result objects, with
+the <tt class="docutils literal"><span class="pre">success</span></tt> key now set to the success rate</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">results</span></tt>: A list of dictionaries that recorded result information.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Experiments.createInitialPopulation">
+<tt class="descclassname">ltga.Experiments.</tt><tt class="descname">createInitialPopulation</tt><big>(</big><em>runNumber</em>, <em>evaluator</em>, <em>config</em><big>)</big><a class="reference internal" href="_modules/ltga/Experiments.html#createInitialPopulation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Experiments.createInitialPopulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to create the initial population for a given run on a specified
+problem.  Uses a <tt class="docutils literal"><span class="pre">HillClimber.steepestAscentHillClimber</span></tt> to optimize all
+individuals.  Will store results to the &#8216;initialPopFolder&#8217; specified by
+<tt class="docutils literal"><span class="pre">config</span></tt> for future use, and will automatically load past saved
+information.  Returns the population and a dictionary describing features
+of that population as well as how it was created.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">runNumber</span></tt>: What number run this population is for.  Ensures that
+populations created for this run in past experiments is reused and that
+all runs of a single experiment use different initial populations.</li>
+<li><tt class="docutils literal"><span class="pre">evaluator</span></tt>: A <tt class="docutils literal"><span class="pre">FitnessFunction</span></tt> object used when optimizing the
+initial population</li>
+<li><tt class="docutils literal"><span class="pre">config</span></tt>: A dictionary containing all configuration information
+required to generate initial individuals.  Should include values
+for:<ul>
+<li><tt class="docutils literal"><span class="pre">initialPopFolder</span></tt>: The relative path for where to save initial
+population information.</li>
+<li><tt class="docutils literal"><span class="pre">problem</span></tt>: The name of the problem currently being solved.</li>
+<li><tt class="docutils literal"><span class="pre">dimensions</span></tt>: The number of dimensions in the problem.</li>
+<li><tt class="docutils literal"><span class="pre">k</span></tt>: The k value used by the problem.</li>
+<li><tt class="docutils literal"><span class="pre">popSize</span></tt>: The population size to be created.</li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Experiments.fullRun">
+<tt class="descclassname">ltga.Experiments.</tt><tt class="descname">fullRun</tt><big>(</big><em>config</em><big>)</big><a class="reference internal" href="_modules/ltga/Experiments.html#fullRun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Experiments.fullRun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a full run of the specified configuration using <tt class="docutils literal"><span class="pre">oneRun</span></tt>. Will
+return a list of result dictionaries describing what happened in each run.
+If a keyboard interrupt occurs, will return partial information.</p>
+<p>Parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">config</span></tt>: A dictionary containing all configuration information
+required to perform all runs.  Should include values for:<ul>
+<li><tt class="docutils literal"><span class="pre">runs</span></tt>: The number of runs to perform</li>
+<li><tt class="docutils literal"><span class="pre">problem</span></tt>: The problem being solved, for instance <tt class="docutils literal"><span class="pre">DeceptiveTrap</span></tt>,
+<tt class="docutils literal"><span class="pre">DeceptiveStepTrap</span></tt> or <tt class="docutils literal"><span class="pre">NearestNeighborNK</span></tt>.</li>
+<li>All configuration information required to initialize the
+<tt class="docutils literal"><span class="pre">FitnessFunction.</span></tt></li>
+<li>All configuration information required by <tt class="docutils literal"><span class="pre">oneRun</span></tt>.</li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Experiments.oneRun">
+<tt class="descclassname">ltga.Experiments.</tt><tt class="descname">oneRun</tt><big>(</big><em>runNumber</em>, <em>optimizerClass</em>, <em>evaluator</em>, <em>config</em><big>)</big><a class="reference internal" href="_modules/ltga/Experiments.html#oneRun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Experiments.oneRun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a single run of LTGA in solving a specific problem.  Returns
+a dictionary of result information</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">runNumber</span></tt>: What number run this is</li>
+<li><tt class="docutils literal"><span class="pre">optimizerClass</span></tt>: What class of optimizer to use, for instance <tt class="docutils literal"><span class="pre">LTGA</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">evaluator</span></tt>: The problem being solved, for instance
+<tt class="docutils literal"><span class="pre">FitnessFunction.DeceptiveTrap</span></tt>, <tt class="docutils literal"><span class="pre">FitnessFunction.DeceptiveStepTrap</span></tt>
+or <tt class="docutils literal"><span class="pre">FitnessFunction.NearestNeighborNK</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">config</span></tt>: A dictionary containing all configuration information
+required to perform a single run.  Should include values for:<ul>
+<li><tt class="docutils literal"><span class="pre">maximumEvaluations</span></tt>: The hard limit on how many evaluations to
+perform.</li>
+<li><tt class="docutils literal"><span class="pre">maximumFitness</span></tt>: The fitness required for a run to be considered a
+success.</li>
+<li><tt class="docutils literal"><span class="pre">unique</span></tt>: A True / False value to determine if only unique
+evaluations should be counted</li>
+<li>All configuration information required by <tt class="docutils literal"><span class="pre">createInitialPopulation</span></tt>
+and any required by the <tt class="docutils literal"><span class="pre">optimizerClass</span></tt>.</li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ltga.FitnessFunction">
+<span id="fitnessfunction-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">FitnessFunction</span></tt> Module<a class="headerlink" href="#module-ltga.FitnessFunction" title="Permalink to this headline">¶</a></h2>
+<p>This module provides an interface for how fitness functions should interact
+with solvers, as well as the definitions for a few benchmark problems</p>
+<dl class="class">
+<dt id="ltga.FitnessFunction.DeceptiveStepTrap">
+<em class="property">class </em><tt class="descclassname">ltga.FitnessFunction.</tt><tt class="descname">DeceptiveStepTrap</tt><big>(</big><em>config</em>, <em>_=None</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveStepTrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveStepTrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ltga.FitnessFunction.DeceptiveTrap" title="ltga.FitnessFunction.DeceptiveTrap"><tt class="xref py py-class docutils literal"><span class="pre">ltga.FitnessFunction.DeceptiveTrap</span></tt></a></p>
+<p>Implementation of the deceptive step trap benchmark.  Inherits <tt class="docutils literal"><span class="pre">evaluate</span></tt>
+and subProblemsSolved from <tt class="docutils literal"><span class="pre">DeceptiveTrap</span></tt>.</p>
+<dl class="method">
+<dt id="ltga.FitnessFunction.DeceptiveStepTrap.normalize">
+<tt class="descname">normalize</tt><big>(</big><em>genes</em>, <em>fitness</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveStepTrap.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveStepTrap.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes a fitness for a set of genes to be in the range [0-1], such
+that 1 is considered a successful run.  Automatically called by
+<tt class="docutils literal"><span class="pre">evaluate</span></tt>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The list of genes being evaluated.</li>
+<li><tt class="docutils literal"><span class="pre">fitness</span></tt>: The fitness value that needs to be normalized.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.DeceptiveStepTrap.scoreTrap">
+<tt class="descname">scoreTrap</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveStepTrap.scoreTrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveStepTrap.scoreTrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of genes in a trap, returns the fitness of those genes.
+Calls <tt class="docutils literal"><span class="pre">DeceptiveTrap.scoreTrap</span></tt> to get the raw trap value, then
+modifies the fitness to include fitness plateaus.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The genes for a single trap to be evaluated.</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ltga.FitnessFunction.DeceptiveTrap">
+<em class="property">class </em><tt class="descclassname">ltga.FitnessFunction.</tt><tt class="descname">DeceptiveTrap</tt><big>(</big><em>config</em>, <em>_=None</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveTrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveTrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ltga.FitnessFunction.FitnessFunction" title="ltga.FitnessFunction.FitnessFunction"><tt class="xref py py-class docutils literal"><span class="pre">ltga.FitnessFunction.FitnessFunction</span></tt></a></p>
+<p>Implementation of the deceptive trap benchmark.</p>
+<dl class="method">
+<dt id="ltga.FitnessFunction.DeceptiveTrap.evaluate">
+<tt class="descname">evaluate</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveTrap.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveTrap.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of binary genes, return the normalized fitness of those
+genes.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The list of genes to be evaluated.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.DeceptiveTrap.normalize">
+<tt class="descname">normalize</tt><big>(</big><em>genes</em>, <em>fitness</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveTrap.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveTrap.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes a fitness for a set of genes to be in the range [0-1], such
+that 1 is considered a successful run.  Automatically called by
+<tt class="docutils literal"><span class="pre">evaluate</span></tt>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The list of genes being evaluated.</li>
+<li><tt class="docutils literal"><span class="pre">fitness</span></tt>: The fitness value that needs to be normalized.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.DeceptiveTrap.scoreTrap">
+<tt class="descname">scoreTrap</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveTrap.scoreTrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveTrap.scoreTrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the set of genes in a trap, return the fitness of those genes.
+Automatically called by <tt class="docutils literal"><span class="pre">evaluate</span></tt>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The list of genes to be scored.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.DeceptiveTrap.subProblemsSolved">
+<tt class="descname">subProblemsSolved</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#DeceptiveTrap.subProblemsSolved"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.DeceptiveTrap.subProblemsSolved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of 0s and 1s indicating with of the traps contain the
+optimum value in the passed in genes.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The list of genes to find solved subproblems in.</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ltga.FitnessFunction.FitnessFunction">
+<em class="property">class </em><tt class="descclassname">ltga.FitnessFunction.</tt><tt class="descname">FitnessFunction</tt><big>(</big><em>config</em>, <em>runNumber</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#FitnessFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.FitnessFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>An interface for a fitness function provided to ensure all required
+functions of a fitness function object are implemented</p>
+<dl class="method">
+<dt id="ltga.FitnessFunction.FitnessFunction.evaluate">
+<tt class="descname">evaluate</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#FitnessFunction.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.FitnessFunction.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empty function handle that throws an exception if not overridden.
+Given a list of genes, should return the fitness of those genes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.FitnessFunction.subProblemsSolved">
+<tt class="descname">subProblemsSolved</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#FitnessFunction.subProblemsSolved"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.FitnessFunction.subProblemsSolved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empty function handle that throws an exception if not overridden.
+Given a list of genes, returns a list of zeros and ones indicating
+which sub problems have been solved.  If this fitness function cannot
+be described as having subproblems, should return a list containing a
+single 1 or 0 indicating if these genes represent the global optimum.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ltga.FitnessFunction.NearestNeighborNK">
+<em class="property">class </em><tt class="descclassname">ltga.FitnessFunction.</tt><tt class="descname">NearestNeighborNK</tt><big>(</big><em>config</em>, <em>runNumber</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#NearestNeighborNK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.NearestNeighborNK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ltga.FitnessFunction.FitnessFunction" title="ltga.FitnessFunction.FitnessFunction"><tt class="xref py py-class docutils literal"><span class="pre">ltga.FitnessFunction.FitnessFunction</span></tt></a></p>
+<p>An implementation of the nearest neighbor NK landscape benchmark.</p>
+<dl class="method">
+<dt id="ltga.FitnessFunction.NearestNeighborNK.buildProblem">
+<tt class="descname">buildProblem</tt><big>(</big><em>config</em>, <em>problemNumber</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#NearestNeighborNK.buildProblem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.NearestNeighborNK.buildProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to load the NK problem specified by the configuration and
+problem number.  If this problem has not been previously generated,
+this function will construct the fitness matrix and use <tt class="docutils literal"><span class="pre">solve</span></tt> to
+find the global minimum and maximum.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">config</span></tt>: A dictionary containing all configuration information
+required to load/generate a NK problem.  Should include values
+for:<ul>
+<li><tt class="docutils literal"><span class="pre">dimensions</span></tt>: The number of dimensions in use</li>
+<li><tt class="docutils literal"><span class="pre">k</span></tt>: The amount of gene overlap in the subproblems.</li>
+<li><tt class="docutils literal"><span class="pre">nkProblemFolder</span></tt>: The relative path to the folder where NK
+instances should be saved to and loaded from.</li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.NearestNeighborNK.evaluate">
+<tt class="descname">evaluate</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#NearestNeighborNK.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.NearestNeighborNK.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of binary genes, return the normalized fitness of those
+genes.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The list of genes to be evaluated.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.NearestNeighborNK.getFitness">
+<tt class="descname">getFitness</tt><big>(</big><em>g</em>, <em>neighborhood</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#NearestNeighborNK.getFitness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.NearestNeighborNK.getFitness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a gene index and the list of gene values in its neighborhood,
+return the fitness of the subproblem.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">g</span></tt>: The subproblem to get the fitness for.</li>
+<li><tt class="docutils literal"><span class="pre">neighborhood</span></tt>: The gene values contained in that subproblem</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.NearestNeighborNK.solve">
+<tt class="descname">solve</tt><big>(</big><em>extreme</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#NearestNeighborNK.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.NearestNeighborNK.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the optimal value for this NK instance in polynomial time
+using dynamic programming.  For full explanation for how this
+algorithm works see:</p>
+<p>A. H. Wright, R. K. Thompson, and J. Zhang. The computational
+complexity of N-K fitness functions. IEEE Trans. on Evolutionary
+Computation, 4(4):373-379, 2000</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">extreme</span></tt>: A function that selects which fitness extreme is being
+solved for.  For instance, <tt class="docutils literal"><span class="pre">min</span></tt> or <tt class="docutils literal"><span class="pre">max</span></tt>.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.FitnessFunction.NearestNeighborNK.subProblemsSolved">
+<tt class="descname">subProblemsSolved</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/FitnessFunction.html#NearestNeighborNK.subProblemsSolved"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.FitnessFunction.NearestNeighborNK.subProblemsSolved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of 0s and 1s indicating which subproblems currently
+have values identical to those for the global best genes.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The genes to be checked for solved subproblems.</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ltga.HillClimber">
+<span id="hillclimber-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">HillClimber</span></tt> Module<a class="headerlink" href="#module-ltga.HillClimber" title="Permalink to this headline">¶</a></h2>
+<p>This module contains coroutines designed to perform different types of hill
+climbing as well as a function to perform a complete climb of a single set
+of genes.</p>
+<dl class="function">
+<dt id="ltga.HillClimber.climb">
+<tt class="descclassname">ltga.HillClimber.</tt><tt class="descname">climb</tt><big>(</big><em>genes</em>, <em>evaluator</em>, <em>method</em><big>)</big><a class="reference internal" href="_modules/ltga/HillClimber.html#climb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.HillClimber.climb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Improves the fitness of a list of binary genes using the given method on
+the specified evaluation function.  Modifies the genes in place and returns
+how many hill climbing evaluations were required to optimize the genes.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The initial list of binary genes to improve using hill
+climbing.</li>
+<li><tt class="docutils literal"><span class="pre">evaluator</span></tt>: A function that takes in a list of genes and returns its
+fitness.</li>
+<li><tt class="docutils literal"><span class="pre">method</span></tt>: The hill climbing coroutine to be used.  For instance
+<tt class="docutils literal"><span class="pre">steepestAscentHillClimbing</span></tt>.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.HillClimber.steepestAscentHillClimber">
+<tt class="descclassname">ltga.HillClimber.</tt><tt class="descname">steepestAscentHillClimber</tt><big>(</big><em>genes</em><big>)</big><a class="reference internal" href="_modules/ltga/HillClimber.html#steepestAscentHillClimber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.HillClimber.steepestAscentHillClimber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a initial list of binary genes, create a generator designed to yield
+each step in a steepest ascent hill climb.  Modifies the genes in place,
+such that when iteration ends the <tt class="docutils literal"><span class="pre">genes</span></tt> list contains the best found
+individual.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">genes</span></tt>: The initial list of binary genes to improve using hill
+climbing.</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ltga.Individual">
+<span id="individual-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">Individual</span></tt> Module<a class="headerlink" href="#module-ltga.Individual" title="Permalink to this headline">¶</a></h2>
+<p>Simple module containing individual object implementations.</p>
+<dl class="class">
+<dt id="ltga.Individual.Individual">
+<em class="property">class </em><tt class="descclassname">ltga.Individual.</tt><tt class="descname">Individual</tt><big>(</big><em>genes=</em><span class="optional">[</span><span class="optional">]</span>, <em>fitness=-2147483646</em><big>)</big><a class="reference internal" href="_modules/ltga/Individual.html#Individual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Individual.Individual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A basic individual object used to combine gene fitness with genomes, as
+well as some basic utility functions.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ltga.LTGA">
+<span id="ltga-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">LTGA</span></tt> Module<a class="headerlink" href="#module-ltga.LTGA" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the implementation of LTGA itself.  It includes
+functionality for each of the variants</p>
+<dl class="class">
+<dt id="ltga.LTGA.LTGA">
+<em class="property">class </em><tt class="descclassname">ltga.LTGA.</tt><tt class="descname">LTGA</tt><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Class containing all of the LTGA functionality.  Uses the coroutine
+design structure to interact with problems being optimized.  To use,
+create an LTGA object and then call the <tt class="docutils literal"><span class="pre">generate</span></tt> function.  This
+will send out individuals and expects their fitness to be sent back in.</p>
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.applyMask">
+<tt class="descname">applyMask</tt><big>(</big><em>p1</em>, <em>p2</em>, <em>mask</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.applyMask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.applyMask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used by two parent crossover to create an individual by coping the
+genetic information from p2 into a clone of p1 for all genes in the
+given mask.  Returns the newly created individual.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">p1</span></tt>: The first parent.</li>
+<li><tt class="docutils literal"><span class="pre">p2</span></tt>: The second parent.</li>
+<li><tt class="docutils literal"><span class="pre">mask</span></tt>: The list of indices used in this crossover.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.buildTree">
+<tt class="descname">buildTree</tt><big>(</big><em>distance</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.buildTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.buildTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a method of calculating distance, build the linkage tree for the
+current population.  The tree is built by finding the two clusters with
+the minimum distance and merging them into a single cluster.  The
+process is initialized with all possible clusters of size 1 and ends
+when only a single cluster remains.  Returns the subtrees in the order
+they were created.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">distance</span></tt>: The method of calculating distance.  Current options
+are <tt class="docutils literal"><span class="pre">self.clusterDistance</span></tt> and <tt class="docutils literal"><span class="pre">self.pairwiseDistance</span></tt></li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.clusterDistance">
+<tt class="descname">clusterDistance</tt><big>(</big><em>c1</em>, <em>c2</em>, <em>lookup</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.clusterDistance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.clusterDistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the true entropic distance between two clusters of genes.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">c1</span></tt>: The first cluster.</li>
+<li><tt class="docutils literal"><span class="pre">c2</span></tt>: The second cluster.</li>
+<li><tt class="docutils literal"><span class="pre">lookup</span></tt>: A dictionary mapping cluster pairs to their previously
+found distances.  Should be reset if the population changes.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.entropy">
+<tt class="descname">entropy</tt><big>(</big><em>mask</em>, <em>lookup</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.entropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.entropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the current populations entropy for a given mask.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">mask</span></tt>: The list of indices to examine</li>
+<li><tt class="docutils literal"><span class="pre">lookup</span></tt>: A dictionary containing entropy values already found for
+this population.  Should be reset if the population changes.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.generate">
+<tt class="descname">generate</tt><big>(</big><em>initialPopulation</em>, <em>config</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The individual generator for the LTGA population.  Sends out
+individuals that need to be evaluated and receives fitness information.
+Will continue sending out individuals until the population contains
+only one unique individual or a generation passes without the set of
+unique individuals changing.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">initialPopulation</span></tt>: The list of individuals to be used as the
+basis for LTGA&#8217;s evolution.  These individuals should already have
+fitness values set.  If local search is to be performed on the
+initial population, it should be done before sending to this
+function.</li>
+<li><tt class="docutils literal"><span class="pre">config</span></tt>: A dictionary containing all configuration information
+required by LTGA to generate individuals.  Should include values
+for:<ul>
+<li><tt class="docutils literal"><span class="pre">distance</span></tt>: The method used to determine the distance between
+clusters, for instance <tt class="docutils literal"><span class="pre">clusterDistance</span></tt> and
+<tt class="docutils literal"><span class="pre">pairwiseDistance</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">ordering</span></tt>: The method used to determine what order subtrees
+should be used as crossover masks, for instance
+<tt class="docutils literal"><span class="pre">leastLinkedFirst</span></tt> and <tt class="docutils literal"><span class="pre">smallestFirst</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">crossover</span></tt>: The method used to generate new individuals, for
+instance <tt class="docutils literal"><span class="pre">twoParentCrossover</span></tt> and <tt class="docutils literal"><span class="pre">globalCrossover</span></tt>.</li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.getMaskValue">
+<tt class="descname">getMaskValue</tt><big>(</big><em>individual</em>, <em>mask</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.getMaskValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.getMaskValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the individual&#8217;s gene values for the given mask</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">individual</span></tt>: The individual to get gene information from</li>
+<li><tt class="docutils literal"><span class="pre">mask</span></tt>: The list of indices to get information from</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.globalCrossover">
+<tt class="descname">globalCrossover</tt><big>(</big><em>masks</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.globalCrossover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.globalCrossover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates individual generator using the global crossover variant.
+Uses coroutines to send out individuals and receive their fitness
+values.  Terminates when a complete evolutionary generation has
+finished.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">masks</span></tt>: The list of crossover masks to be used when generating
+individuals, ordered based on how they should be applied.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.leastLinkedFirst">
+<tt class="descname">leastLinkedFirst</tt><big>(</big><em>subtrees</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.leastLinkedFirst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.leastLinkedFirst" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorders the subtrees such that the cluster pairs with the least
+linkage appear first in the list.  Assumes incoming subtrees are
+ordered by when they were created by the <tt class="docutils literal"><span class="pre">self.buildTree</span></tt> function.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">subtrees</span></tt>: The list of subtrees ordered by how they were
+originally created.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.pairwiseDistance">
+<tt class="descname">pairwiseDistance</tt><big>(</big><em>c1</em>, <em>c2</em>, <em>lookup</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.pairwiseDistance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.pairwiseDistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the pairwise approximation of the entropic distance between
+two clusters of genes.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">c1</span></tt>: The first cluster.</li>
+<li><tt class="docutils literal"><span class="pre">c2</span></tt>: The second cluster.</li>
+<li><tt class="docutils literal"><span class="pre">lookup</span></tt>: A dictionary mapping cluster pairs to their previously
+found distances.  Should be reset if the population changes.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.setMaskValues">
+<tt class="descname">setMaskValues</tt><big>(</big><em>individual</em>, <em>mask</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.setMaskValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.setMaskValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the individual&#8217;s gene values for the given mask</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">individual</span></tt>: The individual who&#8217;s genes are changing.</li>
+<li><tt class="docutils literal"><span class="pre">mask</span></tt>: The list of indices to change.</li>
+<li><tt class="docutils literal"><span class="pre">value</span></tt>: The list of values to change to.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.smallestFirst">
+<tt class="descname">smallestFirst</tt><big>(</big><em>subtrees</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.smallestFirst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.smallestFirst" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorders the subtrees such that the cluster pairs with the smallest
+number of genes appear first in the list.  Assumes incoming subtrees
+are ordered by when they were created by the <tt class="docutils literal"><span class="pre">self.buildTree</span></tt>
+function.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">subtrees</span></tt>: The list of subtrees ordered by how they were
+originally created.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="ltga.LTGA.LTGA.twoParentCrossover">
+<tt class="descname">twoParentCrossover</tt><big>(</big><em>masks</em><big>)</big><a class="reference internal" href="_modules/ltga/LTGA.html#LTGA.twoParentCrossover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.LTGA.LTGA.twoParentCrossover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates individual generator using the two parent crossover variant.
+Uses coroutines to send out individuals and receive their fitness
+values.  Terminates when a complete evolutionary generation has
+finished.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">masks</span></tt>: The list of crossover masks to be used when generating
+individuals, ordered based on how they should be applied.</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ltga.Util">
+<span id="util-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">Util</span></tt> Module<a class="headerlink" href="#module-ltga.Util" title="Permalink to this headline">¶</a></h2>
+<p>Module containing a host of useful functions that do not fall into more
+explicit categories.</p>
+<dl class="function">
+<dt id="ltga.Util.binaryCounter">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">binaryCounter</tt><big>(</big><em>bits</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#binaryCounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.binaryCounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a generator that will count through all possible values for a set
+number of bits.  Returned in counting order.  For instance,
+<tt class="docutils literal"><span class="pre">binaryCounter(3)</span></tt> will yield, 000, 001, 010, 011 ... 110, 111.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">bits</span></tt> The number of bits in the binary counter.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.classMethods">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">classMethods</tt><big>(</big><em>classType</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#classMethods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.classMethods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a class type, return a dictionary mapping string names of that
+class&#8217;s methods to the actual method.  For instance
+<tt class="docutils literal"><span class="pre">classMethod(LTGA)['twoParentCrossover']</span></tt> will return the
+<tt class="docutils literal"><span class="pre">twoParentCrossover</span></tt> function.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">classType</span></tt>: Specifies what class to retrieve methods for.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.loadConfiguration">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">loadConfiguration</tt><big>(</big><em>filename</em>, <em>fileMethod=&lt;built-in function open&gt;</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#loadConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.loadConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a json from the given file name.  Optional file method allows for
+compressed files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">filename</span></tt>: The relative path to the file to be loaded.</li>
+<li><tt class="docutils literal"><span class="pre">fileMethod</span></tt>: Handler to use to open the file.  Defaults to regular
+open.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.loadConfigurations">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">loadConfigurations</tt><big>(</big><em>filenames</em>, <em>fileMethod=&lt;built-in function open&gt;</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#loadConfigurations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.loadConfigurations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of file names, create a single dictionary containing all of
+their contents.  Repeated keywords will override previously encountered
+values.  Optional file method allows for
+compressed files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">filenames</span></tt>: A list of relative paths to the files to be loaded.</li>
+<li><tt class="docutils literal"><span class="pre">fileMethod</span></tt>: Handler to use to open the file.  Defaults to regular
+open.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.meanstd">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">meanstd</tt><big>(</big><em>data</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#meanstd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.meanstd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the mean and standard deviation of the given data.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: The data to find the mean and standard deviation of.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.median">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">median</tt><big>(</big><em>data</em>, <em>default=0</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#median"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.median" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a data set, return the median value.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: The data to find the median of.</li>
+<li><tt class="docutils literal"><span class="pre">default</span></tt>: If <tt class="docutils literal"><span class="pre">data</span></tt> contains no information, what value should be
+returned.  Defaults to 0.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.moduleClasses">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">moduleClasses</tt><big>(</big><em>module</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#moduleClasses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.moduleClasses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a module, return a dictionary mapping string names of that
+module&#8217;s classes to the actual classes.  For instance
+<tt class="docutils literal"><span class="pre">moduleClasses(FitnessFunction)['DeceptiveTrap']</span></tt> will return the
+<tt class="docutils literal"><span class="pre">DeceptiveTrap</span></tt> class.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">module</span></tt>: Specifies what module to retrieve classes for.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.randomBitString">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">randomBitString</tt><big>(</big><em>length</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#randomBitString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.randomBitString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate and return a random list of 0s and 1s.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">length</span></tt>: The length of the list to be generated.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.saveConfiguration">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">saveConfiguration</tt><big>(</big><em>filename</em>, <em>data</em>, <em>fileMethod=&lt;built-in function open&gt;</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#saveConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.saveConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a block of json-able data to the specifed file path.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">filename</span></tt>: The relative path to the file to be written to.</li>
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: Data that can be converted to a json.  IE dictionaries and
+lists.</li>
+<li><tt class="docutils literal"><span class="pre">fileMethod</span></tt>: Handler to use to open the file.  Defaults to regular
+open.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="ltga.Util.saveList">
+<tt class="descclassname">ltga.Util.</tt><tt class="descname">saveList</tt><big>(</big><em>filename</em>, <em>data</em>, <em>fileMethod=&lt;built-in function open&gt;</em><big>)</big><a class="reference internal" href="_modules/ltga/Util.html#saveList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ltga.Util.saveList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out a list of jsons in a more human readable way than
+<tt class="docutils literal"><span class="pre">saveConfiguration</span></tt>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">filename</span></tt>: The relative path to the file to be written to.</li>
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: A list of json-able data to be written</li>
+<li><tt class="docutils literal"><span class="pre">fileMethod</span></tt>: Handler to use to open the file.  Defaults to regular
+open.</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ltga.main">
+<span id="main-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">main</span></tt> Module<a class="headerlink" href="#module-ltga.main" title="Permalink to this headline">¶</a></h2>
+<p>This module is intended to duplicate the &#8216;main()&#8217; function found in other
+languages such as C++ and Java.  In order to run an experiment, this module
+should be passes to your interpreter.  In the interest of speed and consistency
+we suggest that PyPy 1.8.0 with GCC 4.6.2 be used to run this code, although
+Python 2.7 should be able to handle it correctly.</p>
+<p>To see a full description of this modules command line arguments, run
+<tt class="docutils literal"><span class="pre">``pypy</span> <span class="pre">main.py</span> <span class="pre">-h``</span></tt>.</p>
+<p>Provided with this code should be the folders <tt class="docutils literal"><span class="pre">experiments</span></tt>, <tt class="docutils literal"><span class="pre">problems</span></tt>,
+and <tt class="docutils literal"><span class="pre">variants</span></tt>, which contain configuration information require to recreate
+the experiments performed in the Linkage Tree Genetic Algorithms: Variants and
+Analysis publication.  For example, the following command uses the general
+experiment setup on the Deceptive Trap problem with 50 dimensions and a trap
+size of 5.  The LTGA variant <tt class="docutils literal"><span class="pre">original+</span></tt> is used, and the verbose flag is set
+to increase the output given.  Since no population size is specified, it will
+automatically call bisection to find the minimum population size.</p>
+<p><tt class="docutils literal"><span class="pre">pypy</span> <span class="pre">main.py</span> <span class="pre">experiments/general.cfg</span> <span class="pre">problems/DeceptiveTrap_50_5.cfg</span>
+<span class="pre">variants/originalplus.cfg</span> <span class="pre">-v</span></tt></p>
+<p>For any support questions email <a class="reference external" href="mailto:brianwgoldman&#37;&#52;&#48;acm&#46;org">brianwgoldman<span>&#64;</span>acm<span>&#46;</span>org</a> or <a class="reference external" href="mailto:dtauritz&#37;&#52;&#48;acm&#46;org">dtauritz<span>&#64;</span>acm<span>&#46;</span>org</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ltga Package</a><ul>
+<li><a class="reference internal" href="#module-ltga.Experiments"><tt class="docutils literal"><span class="pre">Experiments</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ltga.FitnessFunction"><tt class="docutils literal"><span class="pre">FitnessFunction</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ltga.HillClimber"><tt class="docutils literal"><span class="pre">HillClimber</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ltga.Individual"><tt class="docutils literal"><span class="pre">Individual</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ltga.LTGA"><tt class="docutils literal"><span class="pre">LTGA</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ltga.Util"><tt class="docutils literal"><span class="pre">Util</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ltga.main"><tt class="docutils literal"><span class="pre">main</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Linkage Tree Genetic Algorithms: Variants and Analysis</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ltga.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Linkage Tree Genetic Algorithms: Variants and Analysis"
+             >previous</a> |</li>
+        <li><a href="index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Brian W. Goldman and Daniel R. Tauritz.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

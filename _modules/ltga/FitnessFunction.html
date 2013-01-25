@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ltga.FitnessFunction &mdash; Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ltga.FitnessFunction</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">This module provides an interface for how fitness functions should interact</span>
+<span class="sd">with solvers, as well as the definitions for a few benchmark problems</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">Util</span> <span class="kn">import</span> <span class="n">binaryCounter</span><span class="p">,</span> <span class="n">loadConfiguration</span><span class="p">,</span> <span class="n">saveConfiguration</span>
+
+
+<div class="viewcode-block" id="FitnessFunction"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.FitnessFunction">[docs]</a><span class="k">class</span> <span class="nc">FitnessFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    An interface for a fitness function provided to ensure all required</span>
+<span class="sd">    functions of a fitness function object are implemented</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">runNumber</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Empty constructor, useful for fitness functions that are configuration</span>
+<span class="sd">        and run independent</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="FitnessFunction.evaluate"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.FitnessFunction.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Empty function handle that throws an exception if not overridden.</span>
+<span class="sd">        Given a list of genes, should return the fitness of those genes.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Fitness function did not override evaluate&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="FitnessFunction.subProblemsSolved"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.FitnessFunction.subProblemsSolved">[docs]</a>    <span class="k">def</span> <span class="nf">subProblemsSolved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Empty function handle that throws an exception if not overridden.</span>
+<span class="sd">        Given a list of genes, returns a list of zeros and ones indicating</span>
+<span class="sd">        which sub problems have been solved.  If this fitness function cannot</span>
+<span class="sd">        be described as having subproblems, should return a list containing a</span>
+<span class="sd">        single 1 or 0 indicating if these genes represent the global optimum.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Fitness function did not override subProblemsSolved&quot;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="DeceptiveTrap"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveTrap">[docs]</a><span class="k">class</span> <span class="nc">DeceptiveTrap</span><span class="p">(</span><span class="n">FitnessFunction</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Implementation of the deceptive trap benchmark.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initializes the trap size used by this fitness function.  Ignores</span>
+<span class="sd">        final argument as ``DeceptiveTrap``&#39;s method of evaluation is run</span>
+<span class="sd">        independent.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``config``: A configuration dictionary containing a value for ``k``</span>
+<span class="sd">        to be used to set the trap size.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;k&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="DeceptiveTrap.scoreTrap"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveTrap.scoreTrap">[docs]</a>    <span class="k">def</span> <span class="nf">scoreTrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given the set of genes in a trap, return the fitness of those genes.</span>
+<span class="sd">        Automatically called by ``evaluate``.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The list of genes to be scored.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">trap</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">trap</span> <span class="k">if</span> <span class="n">trap</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span> <span class="o">-</span> <span class="n">trap</span> <span class="o">-</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="DeceptiveTrap.normalize"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveTrap.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Normalizes a fitness for a set of genes to be in the range [0-1], such</span>
+<span class="sd">        that 1 is considered a successful run.  Automatically called by</span>
+<span class="sd">        ``evaluate``.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The list of genes being evaluated.</span>
+<span class="sd">        - ``fitness``: The fitness value that needs to be normalized.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">fitness</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="DeceptiveTrap.evaluate"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveTrap.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given a list of binary genes, return the normalized fitness of those</span>
+<span class="sd">        genes.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The list of genes to be evaluated.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">fitness</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c"># iterate to find the start of each trap</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span><span class="p">):</span>
+            <span class="c"># sum all of the values in that trap together</span>
+            <span class="n">fitness</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scoreTrap</span><span class="p">(</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DeceptiveTrap.subProblemsSolved"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveTrap.subProblemsSolved">[docs]</a>    <span class="k">def</span> <span class="nf">subProblemsSolved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of 0s and 1s indicating with of the traps contain the</span>
+<span class="sd">        optimum value in the passed in genes.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The list of genes to find solved subproblems in.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span><span class="p">])</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span><span class="p">)]</span>
+
+</div></div>
+<div class="viewcode-block" id="DeceptiveStepTrap"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveStepTrap">[docs]</a><span class="k">class</span> <span class="nc">DeceptiveStepTrap</span><span class="p">(</span><span class="n">DeceptiveTrap</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Implementation of the deceptive step trap benchmark.  Inherits ``evaluate``</span>
+<span class="sd">    and subProblemsSolved from ``DeceptiveTrap``.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initializes the trap size and step size to be used in evaluation.</span>
+<span class="sd">        Ignores final parameter as ``DeceptiveStepTrap`` method of evaluation</span>
+<span class="sd">        is run number independent.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        - ``config``: A configuration dictionary containing values for ``k``</span>
+<span class="sd">          and ``stepSize`` to be used to set the trap size and step size used</span>
+<span class="sd">          during evaluation.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">DeceptiveTrap</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;stepSize&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">possiblePerGene</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+                                <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trapSize</span><span class="p">))</span>
+
+<div class="viewcode-block" id="DeceptiveStepTrap.scoreTrap"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveStepTrap.scoreTrap">[docs]</a>    <span class="k">def</span> <span class="nf">scoreTrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given a set of genes in a trap, returns the fitness of those genes.</span>
+<span class="sd">        Calls ``DeceptiveTrap.scoreTrap`` to get the raw trap value, then</span>
+<span class="sd">        modifies the fitness to include fitness plateaus.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The genes for a single trap to be evaluated.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">trap</span> <span class="o">=</span> <span class="n">DeceptiveTrap</span><span class="o">.</span><span class="n">scoreTrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">+</span> <span class="n">trap</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span>
+</div>
+<div class="viewcode-block" id="DeceptiveStepTrap.normalize"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.DeceptiveStepTrap.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Normalizes a fitness for a set of genes to be in the range [0-1], such</span>
+<span class="sd">        that 1 is considered a successful run.  Automatically called by</span>
+<span class="sd">        ``evaluate``.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The list of genes being evaluated.</span>
+<span class="sd">        - ``fitness``: The fitness value that needs to be normalized.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">fitness</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">possiblePerGene</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="NearestNeighborNK"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.NearestNeighborNK">[docs]</a><span class="k">class</span> <span class="nc">NearestNeighborNK</span><span class="p">(</span><span class="n">FitnessFunction</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    An implementation of the nearest neighbor NK landscape benchmark.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">runNumber</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initializes the fitness matrix and finds the global minimum and</span>
+<span class="sd">        maximum for the given number of dimensions, overlap, and run number.</span>
+<span class="sd">        If this configuration has been seen before, will load stored</span>
+<span class="sd">        information from a file.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``config``: A dictionary containing all configuration information</span>
+<span class="sd">          required to build an instance of the nearest neighbor NK problem.</span>
+<span class="sd">          Should include values for:</span>
+
+<span class="sd">          - ``k``: The amount of overlap for each sub problem.</span>
+<span class="sd">          - ``dimensions``: The number of dimensions in this problem.</span>
+<span class="sd">          - ``problemSeed``: The base seed for all runs, used when generating</span>
+<span class="sd">            the fitness matrix.</span>
+<span class="sd">          - ``nkProblemFolder``: The relative path to the folder where NK</span>
+<span class="sd">            instances should be saved to and loaded from.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;k&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;dimensions&#39;</span><span class="p">]</span>
+        <span class="n">problemNumber</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;problemSeed&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">runNumber</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buildProblem</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">problemNumber</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NearestNeighborNK.buildProblem"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.NearestNeighborNK.buildProblem">[docs]</a>    <span class="k">def</span> <span class="nf">buildProblem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">problemNumber</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Attempts to load the NK problem specified by the configuration and</span>
+<span class="sd">        problem number.  If this problem has not been previously generated,</span>
+<span class="sd">        this function will construct the fitness matrix and use ``solve`` to</span>
+<span class="sd">        find the global minimum and maximum.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``config``: A dictionary containing all configuration information</span>
+<span class="sd">          required to load/generate a NK problem.  Should include values</span>
+<span class="sd">          for:</span>
+
+<span class="sd">          - ``dimensions``: The number of dimensions in use</span>
+<span class="sd">          - ``k``: The amount of gene overlap in the subproblems.</span>
+<span class="sd">          - ``nkProblemFolder``: The relative path to the folder where NK</span>
+<span class="sd">            instances should be saved to and loaded from.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c"># Creates a list of neighborhoods, such that subproblem ``i`` depends</span>
+        <span class="c"># on self.epistasis[i]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epistasis</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">g</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+                          <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%(dimensions)i</span><span class="s">_</span><span class="si">%(k)i</span><span class="s">_&quot;</span> <span class="o">%</span> <span class="n">config</span>
+        <span class="n">key</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">problemNumber</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;nkProblemFolder&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">key</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">loaded</span> <span class="o">=</span> <span class="n">loadConfiguration</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="n">loaded</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">rng</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="n">problemNumber</span><span class="p">)</span>
+            <span class="c"># Creates a random fitness matrix based on the problem number</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="p">[[</span><span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span>
+                            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="nb">min</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="nb">max</span><span class="p">)</span>
+            <span class="n">saveConfiguration</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">optimal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitness</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="NearestNeighborNK.evaluate"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.NearestNeighborNK.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given a list of binary genes, return the normalized fitness of those</span>
+<span class="sd">        genes.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The list of genes to be evaluated.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">fitness</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">ep</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epistasis</span><span class="p">):</span>
+            <span class="c"># Convert the genes into a integer used to index the fitness matrix</span>
+            <span class="n">scalarized</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="p">[</span><span class="n">genes</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ep</span><span class="p">])),</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">fitness</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitness</span><span class="p">[</span><span class="n">g</span><span class="p">][</span><span class="n">scalarized</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">round</span><span class="p">((</span><span class="n">fitness</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="NearestNeighborNK.getFitness"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.NearestNeighborNK.getFitness">[docs]</a>    <span class="k">def</span> <span class="nf">getFitness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given a gene index and the list of gene values in its neighborhood,</span>
+<span class="sd">        return the fitness of the subproblem.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``g``: The subproblem to get the fitness for.</span>
+<span class="sd">        - ``neighborhood``: The gene values contained in that subproblem</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitness</span><span class="p">[</span><span class="n">g</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)]</span>
+</div>
+<div class="viewcode-block" id="NearestNeighborNK.subProblemsSolved"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.NearestNeighborNK.subProblemsSolved">[docs]</a>    <span class="k">def</span> <span class="nf">subProblemsSolved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of 0s and 1s indicating which subproblems currently</span>
+<span class="sd">        have values identical to those for the global best genes.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``genes``: The genes to be checked for solved subproblems.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">genes</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimal</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">subProblem</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">subProblem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epistasis</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="NearestNeighborNK.solve"><a class="viewcode-back" href="../../ltga.html#ltga.FitnessFunction.NearestNeighborNK.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extreme</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the optimal value for this NK instance in polynomial time</span>
+<span class="sd">        using dynamic programming.  For full explanation for how this</span>
+<span class="sd">        algorithm works see:</span>
+
+<span class="sd">        A. H. Wright, R. K. Thompson, and J. Zhang. The computational</span>
+<span class="sd">        complexity of N-K fitness functions. IEEE Trans. on Evolutionary</span>
+<span class="sd">        Computation, 4(4):373-379, 2000</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        - ``extreme``: A function that selects which fitness extreme is being</span>
+<span class="sd">          solved for.  For instance, ``min`` or ``max``.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c"># A dictionary mapping gene values for parts of the genome to their</span>
+        <span class="c"># fitness values</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span> <span class="nf">multiF</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Internal function used to determine the fitness of a chunk of the</span>
+<span class="sd">            genome.</span>
+
+<span class="sd">            Parameters:</span>
+
+<span class="sd">            - ``chuck``: Tuple of gene indices.</span>
+<span class="sd">            - ``a``: First part of the gene settings for these indices.</span>
+<span class="sd">            - ``b``: Second part of the gene settings for these indices.</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">known</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">genewrap</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+                <span class="n">known</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFitness</span><span class="p">(</span><span class="n">chunk</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="n">g</span><span class="p">,</span>
+                                                 <span class="n">genewrap</span><span class="p">[</span><span class="n">g</span><span class="p">:</span><span class="n">g</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                                 <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">known</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">v</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">binaryCounter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">binaryCounter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+                    <span class="n">u</span><span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">extreme</span><span class="p">((</span><span class="n">multiF</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">+</span>
+                                                <span class="n">multiF</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">b</span><span class="p">)</span>
+                                               <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">binaryCounter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">binaryCounter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">binaryCounter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+                    <span class="n">known</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span>
+                    <span class="n">known</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span>
+
+        <span class="n">fitness</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">extreme</span><span class="p">((</span><span class="n">multiF</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">+</span>
+                                 <span class="n">multiF</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">binaryCounter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">binaryCounter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+
+        <span class="c"># Recreates the entire genome that receives the extreme fitness</span>
+        <span class="n">optimalString</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">c</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="n">known</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">last</span><span class="p">,</span> <span class="n">a</span><span class="p">]</span>
+            <span class="n">optimalString</span> <span class="o">+=</span> <span class="n">last</span>
+        <span class="k">return</span> <span class="n">fitness</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">optimalString</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Brian W. Goldman and Daniel R. Tauritz.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

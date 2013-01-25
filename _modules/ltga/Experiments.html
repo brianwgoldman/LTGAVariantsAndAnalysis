@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ltga.Experiments &mdash; Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ltga.Experiments</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">This module contains the code used to actually run experiments and to parse</span>
+<span class="sd">the results of those experiments.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">HillClimber</span>
+<span class="kn">from</span> <span class="nn">Individual</span> <span class="kn">import</span> <span class="n">Individual</span>
+<span class="kn">from</span> <span class="nn">LTGA</span> <span class="kn">import</span> <span class="n">LTGA</span>
+<span class="kn">import</span> <span class="nn">FitnessFunction</span>
+<span class="kn">import</span> <span class="nn">Util</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+
+
+<div class="viewcode-block" id="createInitialPopulation"><a class="viewcode-back" href="../../ltga.html#ltga.Experiments.createInitialPopulation">[docs]</a><span class="k">def</span> <span class="nf">createInitialPopulation</span><span class="p">(</span><span class="n">runNumber</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Used to create the initial population for a given run on a specified</span>
+<span class="sd">    problem.  Uses a ``HillClimber.steepestAscentHillClimber`` to optimize all</span>
+<span class="sd">    individuals.  Will store results to the &#39;initialPopFolder&#39; specified by</span>
+<span class="sd">    ``config`` for future use, and will automatically load past saved</span>
+<span class="sd">    information.  Returns the population and a dictionary describing features</span>
+<span class="sd">    of that population as well as how it was created.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``runNumber``: What number run this population is for.  Ensures that</span>
+<span class="sd">      populations created for this run in past experiments is reused and that</span>
+<span class="sd">      all runs of a single experiment use different initial populations.</span>
+<span class="sd">    - ``evaluator``: A ``FitnessFunction`` object used when optimizing the</span>
+<span class="sd">      initial population</span>
+<span class="sd">    - ``config``: A dictionary containing all configuration information</span>
+<span class="sd">      required to generate initial individuals.  Should include values</span>
+<span class="sd">      for:</span>
+
+<span class="sd">      - ``initialPopFolder``: The relative path for where to save initial</span>
+<span class="sd">        population information.</span>
+<span class="sd">      - ``problem``: The name of the problem currently being solved.</span>
+<span class="sd">      - ``dimensions``: The number of dimensions in the problem.</span>
+<span class="sd">      - ``k``: The k value used by the problem.</span>
+<span class="sd">      - ``popSize``: The population size to be created.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">rngState</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">getstate</span><span class="p">()</span>  <span class="c"># Stores the state of the RNG</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;initialPopFolder&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+    <span class="n">filename</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%(problem)s</span><span class="s">_</span><span class="si">%(dimensions)i</span><span class="s">_</span><span class="si">%(k)i</span><span class="s">_&quot;</span> <span class="o">%</span> <span class="n">config</span>
+    <span class="n">filename</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%i</span><span class="s">.dat.gz&quot;</span> <span class="o">%</span> <span class="n">runNumber</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">loadConfiguration</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Build new individuals if there aren&#39;t enough stored</span>
+    <span class="n">newInfo</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;popSize&quot;</span><span class="p">]</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;popSize&quot;</span><span class="p">]:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">genes</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">randomBitString</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;dimensions&#39;</span><span class="p">])</span>
+        <span class="n">evaluations</span> <span class="o">=</span> <span class="n">HillClimber</span><span class="o">.</span><span class="n">climb</span><span class="p">(</span><span class="n">genes</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span>
+                                 <span class="n">HillClimber</span><span class="o">.</span><span class="n">steepestAscentHillClimber</span><span class="p">)</span>
+        <span class="n">iterations</span> <span class="o">=</span> <span class="n">evaluations</span> <span class="o">/</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;dimensions&#39;</span><span class="p">]</span>
+        <span class="n">fitness</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">subproblems</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">subProblemsSolved</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Keeps a running sum of current population</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">iterations</span> <span class="o">+=</span> <span class="n">total</span><span class="p">[</span><span class="s">&#39;iterations&#39;</span><span class="p">]</span>
+            <span class="n">evaluations</span> <span class="o">+=</span> <span class="n">total</span><span class="p">[</span><span class="s">&#39;evaluations&#39;</span><span class="p">]</span>
+            <span class="n">subproblems</span> <span class="o">=</span> <span class="p">[</span><span class="n">prev</span> <span class="o">+</span> <span class="n">curr</span> <span class="k">for</span> <span class="p">(</span><span class="n">prev</span><span class="p">,</span> <span class="n">curr</span><span class="p">)</span> <span class="ow">in</span>
+                           <span class="nb">zip</span><span class="p">(</span><span class="n">total</span><span class="p">[</span><span class="s">&#39;subproblems&#39;</span><span class="p">],</span> <span class="n">subproblems</span><span class="p">)]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c"># No need to sum if no previous individuals</span>
+            <span class="k">pass</span>
+        <span class="n">minSubProblem</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">subproblems</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;iterations&#39;</span><span class="p">:</span> <span class="n">iterations</span><span class="p">,</span> <span class="s">&#39;evaluations&#39;</span><span class="p">:</span> <span class="n">evaluations</span><span class="p">,</span>
+               <span class="s">&#39;minSubProblem&#39;</span><span class="p">:</span> <span class="n">minSubProblem</span><span class="p">,</span> <span class="s">&#39;fitness&#39;</span><span class="p">:</span> <span class="n">fitness</span><span class="p">,</span>
+               <span class="s">&#39;genes&#39;</span><span class="p">:</span> <span class="n">genes</span><span class="p">,</span> <span class="s">&#39;subproblems&#39;</span><span class="p">:</span> <span class="n">subproblems</span><span class="p">}</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">newInfo</span><span class="p">:</span>
+        <span class="n">Util</span><span class="o">.</span><span class="n">saveList</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">)</span>
+    <span class="c"># Trim extra information</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;popSize&quot;</span><span class="p">]]</span>
+    <span class="n">population</span> <span class="o">=</span> <span class="p">[</span><span class="n">Individual</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&quot;genes&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s">&quot;fitness&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+    <span class="c"># Get the last row&#39;s information about the population</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">setstate</span><span class="p">(</span><span class="n">rngState</span><span class="p">)</span>  <span class="c"># Ensures RNG isn&#39;t modified by this function</span>
+    <span class="k">return</span>  <span class="n">population</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;LS_iterations&quot;</span><span class="p">:</span> <span class="n">total</span><span class="p">[</span><span class="s">&quot;iterations&quot;</span><span class="p">],</span>
+                         <span class="s">&quot;LS_evaluations&quot;</span><span class="p">:</span> <span class="n">total</span><span class="p">[</span><span class="s">&quot;evaluations&quot;</span><span class="p">],</span>
+                         <span class="s">&quot;minSubProblem&quot;</span><span class="p">:</span> <span class="n">total</span><span class="p">[</span><span class="s">&#39;minSubProblem&#39;</span><span class="p">]}</span>
+
+</div>
+<div class="viewcode-block" id="oneRun"><a class="viewcode-back" href="../../ltga.html#ltga.Experiments.oneRun">[docs]</a><span class="k">def</span> <span class="nf">oneRun</span><span class="p">(</span><span class="n">runNumber</span><span class="p">,</span> <span class="n">optimizerClass</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Performs a single run of LTGA in solving a specific problem.  Returns</span>
+<span class="sd">    a dictionary of result information</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``runNumber``: What number run this is</span>
+<span class="sd">    - ``optimizerClass``: What class of optimizer to use, for instance ``LTGA``</span>
+<span class="sd">    - ``evaluator``: The problem being solved, for instance</span>
+<span class="sd">      ``FitnessFunction.DeceptiveTrap``, ``FitnessFunction.DeceptiveStepTrap``</span>
+<span class="sd">      or ``FitnessFunction.NearestNeighborNK``.</span>
+<span class="sd">    - ``config``: A dictionary containing all configuration information</span>
+<span class="sd">      required to perform a single run.  Should include values for:</span>
+
+<span class="sd">      - ``maximumEvaluations``: The hard limit on how many evaluations to</span>
+<span class="sd">        perform.</span>
+<span class="sd">      - ``maximumFitness``: The fitness required for a run to be considered a</span>
+<span class="sd">        success.</span>
+<span class="sd">      - ``unique``: A True / False value to determine if only unique</span>
+<span class="sd">        evaluations should be counted</span>
+<span class="sd">      - All configuration information required by ``createInitialPopulation``</span>
+<span class="sd">        and any required by the ``optimizerClass``.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">population</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">createInitialPopulation</span><span class="p">(</span><span class="n">runNumber</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="s">&quot;evaluations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">bestFitness</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">population</span><span class="p">)</span><span class="o">.</span><span class="n">fitness</span>
+    <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">individual</span><span class="p">):</span> <span class="n">individual</span><span class="o">.</span><span class="n">fitness</span>
+              <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="n">population</span><span class="p">}</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizerClass</span><span class="p">()</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">individual</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>  <span class="c"># Get the first individual</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;evaluations&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;maximumEvaluations&quot;</span><span class="p">]</span> <span class="ow">and</span>
+               <span class="n">bestFitness</span> <span class="o">&lt;</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;maximumFitness&quot;</span><span class="p">]):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">individual</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c"># If this individual has been rated before</span>
+                <span class="n">fitness</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="c"># Evaluate the individual</span>
+                <span class="n">fitness</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">individual</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;unique&#39;</span><span class="p">]:</span>
+                    <span class="n">lookup</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">fitness</span>
+                <span class="n">result</span><span class="p">[</span><span class="s">&#39;evaluations&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">bestFitness</span> <span class="o">&lt;</span> <span class="n">fitness</span><span class="p">:</span>
+                <span class="n">bestFitness</span> <span class="o">=</span> <span class="n">fitness</span>
+            <span class="c"># Send the fitness into the optimizer and get the next individual</span>
+            <span class="n">individual</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>  <span class="c"># If the optimizer ever stops, just end the run</span>
+        <span class="k">pass</span>
+
+    <span class="n">result</span><span class="p">[</span><span class="s">&#39;success&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bestFitness</span> <span class="o">&gt;=</span> <span class="n">config</span><span class="p">[</span><span class="s">&quot;maximumFitness&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;verbose&#39;</span><span class="p">]:</span>
+        <span class="k">print</span> <span class="n">runNumber</span><span class="p">,</span> <span class="n">result</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+</div>
+<div class="viewcode-block" id="fullRun"><a class="viewcode-back" href="../../ltga.html#ltga.Experiments.fullRun">[docs]</a><span class="k">def</span> <span class="nf">fullRun</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Performs a full run of the specified configuration using ``oneRun``. Will</span>
+<span class="sd">    return a list of result dictionaries describing what happened in each run.</span>
+<span class="sd">    If a keyboard interrupt occurs, will return partial information.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    - ``config``: A dictionary containing all configuration information</span>
+<span class="sd">      required to perform all runs.  Should include values for:</span>
+
+<span class="sd">      - ``runs``: The number of runs to perform</span>
+<span class="sd">      - ``problem``: The problem being solved, for instance ``DeceptiveTrap``,</span>
+<span class="sd">        ``DeceptiveStepTrap`` or ``NearestNeighborNK``.</span>
+<span class="sd">      - All configuration information required to initialize the</span>
+<span class="sd">        ``FitnessFunction.``</span>
+<span class="sd">      - All configuration information required by ``oneRun``.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">runNumber</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;runs&quot;</span><span class="p">]):</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moduleClasses</span><span class="p">(</span><span class="n">FitnessFunction</span><span class="p">)</span>
+            <span class="n">evaluator</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;problem&quot;</span><span class="p">]](</span><span class="n">config</span><span class="p">,</span> <span class="n">runNumber</span><span class="p">)</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">oneRun</span><span class="p">(</span><span class="n">runNumber</span><span class="p">,</span> <span class="n">LTGA</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">config</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Caught interrupt, exiting&quot;</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+</div>
+<div class="viewcode-block" id="combineResults"><a class="viewcode-back" href="../../ltga.html#ltga.Experiments.combineResults">[docs]</a><span class="k">def</span> <span class="nf">combineResults</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given a list of result dictionaries, determine the mean and standard</span>
+<span class="sd">    deviation for all key values.  Only combines results where the success</span>
+<span class="sd">    key is true and the number of required evaluations is greater than zero</span>
+<span class="sd">    (ensures the LTGA variant was actually used and successful).  Returns a</span>
+<span class="sd">    dictionary containing all keys found in the original result objects, with</span>
+<span class="sd">    the ``success`` key now set to the success rate</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``results``: A list of dictionaries that recorded result information.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">combined</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Only gather results from successful runs and where local search</span>
+    <span class="c"># didn&#39;t solve the problem</span>
+    <span class="n">successful</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span>
+                  <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;success&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;evaluations&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">successful</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">combined</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">combined</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">combined</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">combined</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">meanstd</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">runs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;evaluations&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">combined</span><span class="p">[</span><span class="s">&#39;success&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">successful</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">runs</span><span class="p">),</span> <span class="mi">0</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">combined</span><span class="p">[</span><span class="s">&#39;success&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">combined</span>
+
+</div>
+<div class="viewcode-block" id="bisection"><a class="viewcode-back" href="../../ltga.html#ltga.Experiments.bisection">[docs]</a><span class="k">def</span> <span class="nf">bisection</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Determines the minimum population size for a configuration that acceptably</span>
+<span class="sd">    solves the specified problem using bisection.  Starts with a minimum</span>
+<span class="sd">    population size of 2, this will double the population size until the</span>
+<span class="sd">    success criteria are met.  It will then perform a binary search of the</span>
+<span class="sd">    space between the lowest found successful population size and the highest</span>
+<span class="sd">    found unsuccessful population size.  Modifies the input configuration</span>
+<span class="sd">    dictionary to contain the minimum successful population size found.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - ``config``: A dictionary containing all configuration information</span>
+<span class="sd">      required to perform bisection.  Should include values for:</span>
+
+<span class="sd">      - ``bisectionRuns``: The number of runs to use a given population size in</span>
+<span class="sd">        order to determine if it is successful.</span>
+<span class="sd">      - ``problem``: The problem being solved, for instance ``DeceptiveTrap``,</span>
+<span class="sd">        ``DeceptiveStepTrap`` or ``NearestNeighborNK``.</span>
+<span class="sd">      - ``bisectionFailureLimit``: The maximum number of times a population</span>
+<span class="sd">        size can fail to find the global optimum of a problem before it is</span>
+<span class="sd">        marked as unsuccessful.  IE: A failure limit of 1 means it can fail one</span>
+<span class="sd">        of the ``bisectionRuns`` without being marked as unsuccessful.</span>
+<span class="sd">      - All configuration information required to initialize the</span>
+<span class="sd">        ``FitnessFunction.``</span>
+<span class="sd">      - All configuration information required by ``oneRun``.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">canSucceed</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+        <span class="n">failures</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">runNumber</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;bisectionRuns&quot;</span><span class="p">]):</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moduleClasses</span><span class="p">(</span><span class="n">FitnessFunction</span><span class="p">)</span>
+            <span class="n">evaluator</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;problem&quot;</span><span class="p">]](</span><span class="n">config</span><span class="p">,</span> <span class="n">runNumber</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">oneRun</span><span class="p">(</span><span class="n">runNumber</span><span class="p">,</span> <span class="n">LTGA</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;success&#39;</span><span class="p">]:</span>
+                <span class="n">failures</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">failures</span> <span class="o">&gt;</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;bisectionFailureLimit&#39;</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="n">least</span><span class="p">,</span> <span class="n">most</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">least</span> <span class="o">=</span> <span class="n">most</span>
+        <span class="n">most</span> <span class="o">*=</span> <span class="mi">2</span>
+        <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">most</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;verbose&#39;</span><span class="p">]:</span>
+            <span class="k">print</span> <span class="s">&#39;Trying population size&#39;</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">canSucceed</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+            <span class="k">break</span>
+    <span class="k">while</span> <span class="n">least</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">most</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">most</span> <span class="o">+</span> <span class="n">least</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;verbose&#39;</span><span class="p">]:</span>
+            <span class="k">print</span> <span class="s">&#39;Trying population size&#39;</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">canSucceed</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+            <span class="n">most</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">least</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span>
+    <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">most</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;verbose&#39;</span><span class="p">]:</span>
+        <span class="k">print</span> <span class="s">&#39;Bisection set population size as&#39;</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;popSize&#39;</span><span class="p">]</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Linkage Tree Genetic Algorithms: Variants and Analysis 2.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Brian W. Goldman and Daniel R. Tauritz.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
